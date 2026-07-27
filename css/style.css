@@ -2027,8 +2027,8 @@ button {
     .deliver-to { display: none; }
     .ck-icon { height: 38px; }
     .brand-text { gap: 0; flex: 1; }
-    .brand-text .bt-name { font-size: 18px; letter-spacing: 0.5px; }
-    .brand-text .bt-tag { font-size: 8px; letter-spacing: 1.5px; }
+    .brand-text .bt-name { font-size: 16px; letter-spacing: 0.3px; white-space: nowrap; }
+    .brand-text .bt-tag { font-size: 7px; letter-spacing: 1px; white-space: nowrap; }
     .search-bar { order: 3; width: 100%; flex: 0 0 100%; box-sizing: border-box; }
     .header-actions { gap: 2px; }
     .header-action span:not(.badge) { display: none; }
