@@ -1,414 +1,141 @@
 // ===== CHOICE KART - Premium Grocery Store =====
+// Connected to Supabase for live product data
 
-// Image paths
-const DL = 'assets/images/downloads/';
-const CAT = 'assets/images/products/';
-
-// ===== PRODUCT DATA WITH YOUR LOCAL IMAGES =====
-const products = [
-    // --- GROCERY & STAPLES ---
-    {
-        id: 1,
-        name: "Aashirvaad Whole Wheat Atta",
-        brand: "Aashirvaad",
-        price: 265,
-        originalPrice: 310,
-        discount: 15,
-        weight: "5 kg",
-        category: "grocery",
-        image: CAT + "flour/aashirvaad-whole-wheat-atta.jpg"
-    },
-    {
-        id: 2,
-        name: "India Gate Basmati Rice - Super",
-        brand: "India Gate",
-        price: 899,
-        originalPrice: 999,
-        discount: 10,
-        weight: "5 kg",
-        category: "grocery",
-        image: DL + "India Gate Basmati Rice - Super.jpg"
-    },
-    {
-        id: 3,
-        name: "Fortune Sunlite Refined Sunflower Oil",
-        brand: "Fortune",
-        price: 176,
-        originalPrice: 210,
-        discount: 16,
-        weight: "1 Litre",
-        category: "grocery",
-        image: DL + "Fortune Sunlite Refined Sunflower Oil.jpg"
-    },
-    {
-        id: 4,
-        name: "Tata Salt - Iodised",
-        brand: "Tata",
-        price: 20,
-        originalPrice: 28,
-        discount: 29,
-        weight: "1 kg",
-        category: "grocery",
-        image: DL + "Tata Salt - Iodised.jpg"
-    },
-    {
-        id: 5,
-        name: "Tata Sampann Toor Dal / Arhar Dal",
-        brand: "Tata Sampann",
-        price: 115,
-        originalPrice: 145,
-        discount: 21,
-        weight: "1 kg",
-        category: "grocery",
-        image: DL + "Tata Sampann Toor DalArhar Dal.jpg"
-    },
-    {
-        id: 6,
-        name: "Aashirvaad Sugar",
-        brand: "Aashirvaad",
-        price: 42,
-        originalPrice: 50,
-        discount: 16,
-        weight: "1 kg",
-        category: "grocery",
-        image: DL + "Aashirvaad Sugar.jpg"
-    },
-    {
-        id: 7,
-        name: "MDH Garam Masala",
-        brand: "MDH",
-        price: 85,
-        originalPrice: 99,
-        discount: 14,
-        weight: "100 gm",
-        category: "grocery",
-        image: CAT + "spices/mdh-garam-masala.jpg"
-    },
-    {
-        id: 8,
-        name: "Saffola Gold Oil",
-        brand: "Saffola",
-        price: 199,
-        originalPrice: 235,
-        discount: 15,
-        weight: "1 Litre",
-        category: "grocery",
-        image: CAT + "oils/saffola-gold-oil.jpg"
-    },
-    {
-        id: 9,
-        name: "Everest Kashmiri Lal Chilli",
-        brand: "Everest",
-        price: 78,
-        originalPrice: 95,
-        discount: 18,
-        weight: "100 gm",
-        category: "grocery",
-        image: CAT + "spices/everest-kashmirilal-chilli.jpg"
-    },
-    {
-        id: 10,
-        name: "Rajdhani Besan (Gram Flour)",
-        brand: "Rajdhani",
-        price: 68,
-        originalPrice: 80,
-        discount: 15,
-        weight: "500 gm",
-        category: "grocery",
-        image: CAT + "flour/rajdhani-besan-gram-flour.jpg"
-    },
-
-    // --- VEGETABLES ---
-    {
-        id: 11,
-        name: "Fresh Tomato - Hybrid, Organically Grown",
-        brand: "Farm Fresh",
-        price: 42,
-        originalPrice: 60,
-        discount: 30,
-        weight: "1 kg",
-        category: "vegetables",
-        image: DL + "Fresh Tomato - Hybrid, Organically Grown.jpg"
-    },
-    {
-        id: 12,
-        name: "Fresh Onion - Premium Quality",
-        brand: "Farm Fresh",
-        price: 35,
-        originalPrice: 50,
-        discount: 30,
-        weight: "1 kg",
-        category: "vegetables",
-        image: DL + "Fresh Onion - Premium Quality.jpg"
-    },
-    {
-        id: 13,
-        name: "Fresh Potato - Premium",
-        brand: "Farm Fresh",
-        price: 32,
-        originalPrice: 45,
-        discount: 29,
-        weight: "1 kg",
-        category: "vegetables",
-        image: DL + "Fresh Potato - Premium.jpg"
-    },
-    {
-        id: 14,
-        name: "Green Chilli - Hot & Fresh",
-        brand: "Farm Fresh",
-        price: 30,
-        originalPrice: 40,
-        discount: 25,
-        weight: "250 gm",
-        category: "vegetables",
-        image: DL + "Green Chilli - Hot & Fresh.jpg"
-    },
-
-    // --- FRUITS ---
-    {
-        id: 15,
-        name: "Apple - Shimla, Premium",
-        brand: "Fresho",
-        price: 180,
-        originalPrice: 220,
-        discount: 18,
-        weight: "1 kg",
-        category: "fruits",
-        image: DL + "Apple - Shimla, Premium.jpg"
-    },
-    {
-        id: 16,
-        name: "Fresh Banana - Robusta",
-        brand: "Farm Fresh",
-        price: 49,
-        originalPrice: 60,
-        discount: 18,
-        weight: "1 Dozen",
-        category: "fruits",
-        image: DL + "Fresh Banana - Robusta.jpg"
-    },
-    {
-        id: 17,
-        name: "Pomegranate - Fresh & Juicy",
-        brand: "Fresho",
-        price: 160,
-        originalPrice: 199,
-        discount: 20,
-        weight: "1 kg (3-4 pcs)",
-        category: "fruits",
-        image: DL + "Pomegranate - Fresh & Juicy.jpg"
-    },
-
-    // --- DAIRY ---
-    {
-        id: 18,
-        name: "Amul Taaza Toned Fresh Milk",
-        brand: "Amul",
-        price: 29,
-        originalPrice: 32,
-        discount: 9,
-        weight: "500 ml",
-        category: "dairy",
-        image: DL + "Amul Taaza Toned Fresh Milk.jpg"
-    },
-    {
-        id: 19,
-        name: "Amul Pasteurised Butter",
-        brand: "Amul",
-        price: 56,
-        originalPrice: 60,
-        discount: 7,
-        weight: "100 gm",
-        category: "dairy",
-        image: DL + "Amul Pasteurised Butter.jpg"
-    },
-    {
-        id: 20,
-        name: "Amul Paneer - Fresh",
-        brand: "Amul",
-        price: 90,
-        originalPrice: 105,
-        discount: 14,
-        weight: "200 gm",
-        category: "dairy",
-        image: CAT + "dairy/amul-paneer.jpg"
-    },
-    {
-        id: 21,
-        name: "Heritage Curd",
-        brand: "Heritage",
-        price: 30,
-        originalPrice: 35,
-        discount: 14,
-        weight: "400 gm",
-        category: "dairy",
-        image: CAT + "dairy/heritage-curd.jpg"
-    },
-
-    // --- SNACKS ---
-    {
-        id: 22,
-        name: "Lay's Potato Chips - Classic Salted",
-        brand: "Lay's",
-        price: 20,
-        originalPrice: 20,
-        discount: 0,
-        weight: "52 gm",
-        category: "snacks",
-        image: DL + "Lay's Potato Chips - Classic Salted.jpg"
-    },
-    {
-        id: 23,
-        name: "Maggi 2-Minute Noodles",
-        brand: "Maggi",
-        price: 14,
-        originalPrice: 14,
-        discount: 0,
-        weight: "70 gm",
-        category: "snacks",
-        image: CAT + "snacks/maggi-2-minute-noodles.jpg"
-    },
-    {
-        id: 24,
-        name: "Haldiram's Aloo Bhujia",
-        brand: "Haldiram's",
-        price: 75,
-        originalPrice: 85,
-        discount: 12,
-        weight: "200 gm",
-        category: "snacks",
-        image: CAT + "snacks/haldiram-aloo-bhujia.jpg"
-    },
-    {
-        id: 25,
-        name: "Kurkure Masala Munch",
-        brand: "Kurkure",
-        price: 20,
-        originalPrice: 20,
-        discount: 0,
-        weight: "75 gm",
-        category: "snacks",
-        image: CAT + "snacks/kurkure-masala-munch.jpg"
-    },
-
-    // --- BEVERAGES ---
-    {
-        id: 26,
-        name: "Bru Instant Coffee",
-        brand: "Bru",
-        price: 110,
-        originalPrice: 135,
-        discount: 19,
-        weight: "50 gm",
-        category: "beverages",
-        image: DL + "Bru Instant Coffee.jpg"
-    },
-    {
-        id: 27,
-        name: "Tata Tea Premium - Rich & Aromatic",
-        brand: "Tata Tea",
-        price: 129,
-        originalPrice: 150,
-        discount: 14,
-        weight: "250 gm",
-        category: "beverages",
-        image: DL + "Tata Tea Premium - Rich & Aromatic.jpg"
-    },
-    {
-        id: 28,
-        name: "Coca-Cola",
-        brand: "Coca-Cola",
-        price: 40,
-        originalPrice: 40,
-        discount: 0,
-        weight: "750 ml",
-        category: "beverages",
-        image: CAT + "beverages/coca-cola.jpg"
-    },
-    {
-        id: 29,
-        name: "Bournvita Health Drink",
-        brand: "Cadbury",
-        price: 235,
-        originalPrice: 275,
-        discount: 15,
-        weight: "500 gm",
-        category: "beverages",
-        image: DL + "Bournvita Health Drink.jpg"
-    },
-
-    // --- HOUSEHOLD ---
-    {
-        id: 30,
-        name: "Surf Excel Matic Top Load Detergent",
-        brand: "Surf Excel",
-        price: 235,
-        originalPrice: 280,
-        discount: 16,
-        weight: "1 kg",
-        category: "household",
-        image: DL + "Surf Excel Matic Top Load Detergent.jpg"
-    },
-    {
-        id: 31,
-        name: "Vim Dishwash Liquid Gel - Lemon",
-        brand: "Vim",
-        price: 95,
-        originalPrice: 110,
-        discount: 14,
-        weight: "500 ml",
-        category: "household",
-        image: DL + "Vim Dishwash Liquid Gel - Lemon.jpg"
-    },
-    {
-        id: 32,
-        name: "California Almonds (Badam)",
-        brand: "Premium",
-        price: 320,
-        originalPrice: 399,
-        discount: 20,
-        weight: "250 gm",
-        category: "grocery",
-        image: CAT + "dryfruits/california-almonds-badam.jpg"
-    },
-    {
-        id: 33,
-        name: "Dabur Honey",
-        brand: "Dabur",
-        price: 199,
-        originalPrice: 250,
-        discount: 20,
-        weight: "500 gm",
-        category: "grocery",
-        image: CAT + "sugar/dabur-honey.jpg"
-    },
-    {
-        id: 34,
-        name: "Cadbury Dairy Milk",
-        brand: "Cadbury",
-        price: 50,
-        originalPrice: 50,
-        discount: 0,
-        weight: "50 gm",
-        category: "snacks",
-        image: CAT + "snacks/cadbury-dairy-milk.jpg"
-    },
-    {
-        id: 35,
-        name: "Taj Mahal Tea",
-        brand: "Brooke Bond",
-        price: 145,
-        originalPrice: 170,
-        discount: 15,
-        weight: "250 gm",
-        category: "beverages",
-        image: DL + "Taj Mahal Tea.jpg"
-    }
-];
-
-// ===== CART =====
+// ===== STATE =====
+let products = [];
+let categories = [];
 let cart = JSON.parse(localStorage.getItem('choicekart_cart')) || [];
 
+// Fallback images & category icons
+const CATEGORY_ICONS = {
+    'grocery': 'fas fa-shopping-basket',
+    'fruits': 'fas fa-apple-alt',
+    'vegetables': 'fas fa-carrot',
+    'dairy': 'fas fa-cheese',
+    'snacks': 'fas fa-cookie-bite',
+    'beverages': 'fas fa-mug-hot',
+    'household': 'fas fa-home',
+    'personal care': 'fas fa-pump-soap',
+    'bakery': 'fas fa-bread-slice',
+    'frozen': 'fas fa-snowflake',
+    'baby care': 'fas fa-baby',
+    'pet care': 'fas fa-paw'
+};
+
+const PLACEHOLDER_IMG = 'assets/images/logo.jpeg';
+
+// ===== LOAD DATA FROM SUPABASE =====
+async function loadCategories() {
+    const { data, error } = await db
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+    if (error) { console.error('Categories load error:', error); return; }
+    categories = data || [];
+
+    // Render category nav
+    renderCategoryNav();
+    // Render categories grid
+    renderCategoriesGrid();
+}
+
+async function loadProducts() {
+    const { data, error } = await db
+        .from('products')
+        .select('*, categories(name, slug)')
+        .eq('is_active', true)
+        .order('sort_order');
+
+    if (error) { console.error('Products load error:', error); return; }
+    products = (data || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        brand: p.brand || '',
+        price: Number(p.selling_price),
+        originalPrice: Number(p.mrp),
+        discount: p.mrp > p.selling_price ? Math.round((1 - p.selling_price / p.mrp) * 100) : 0,
+        weight: (p.unit_value || 1) + ' ' + (p.unit || 'piece'),
+        category: p.categories?.slug || '',
+        category_id: p.category_id,
+        image: p.image_url || PLACEHOLDER_IMG,
+        is_featured: p.is_featured
+    }));
+
+    renderProducts('all');
+}
+
+// ===== RENDER CATEGORY NAV =====
+function renderCategoryNav() {
+    const container = document.getElementById('category-nav-container');
+    if (!container) return;
+
+    // Keep the All Categories button and the All link
+    const offersLink = container.querySelector('.offers-link');
+    const allCatBtn = container.querySelector('.all-categories');
+    const allLink = container.querySelector('a.active');
+
+    // Build category links
+    const catLinks = categories.map(c => {
+        const iconClass = CATEGORY_ICONS[c.slug] || 'fas fa-tag';
+        return `<a href="#" onclick="filterByCategory('${c.slug}', this); return false;"><i class="${iconClass}"></i> ${c.name}</a>`;
+    }).join('');
+
+    container.innerHTML = '';
+    if (allCatBtn) container.appendChild(allCatBtn);
+    if (allLink) container.appendChild(allLink);
+    container.insertAdjacentHTML('beforeend', catLinks);
+    if (offersLink) container.appendChild(offersLink);
+}
+
+// ===== RENDER CATEGORIES GRID =====
+async function renderCategoriesGrid() {
+    const grid = document.getElementById('categories-grid');
+    if (!grid) return;
+
+    if (categories.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:#9CA3AF;grid-column:1/-1;">Categories coming soon!</p>';
+        return;
+    }
+
+    // Get product counts per category
+    const { data: prodCounts } = await db
+        .from('products')
+        .select('category_id')
+        .eq('is_active', true);
+
+    const countMap = {};
+    (prodCounts || []).forEach(p => {
+        countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
+    });
+
+    grid.innerHTML = categories.map(c => {
+        const count = countMap[c.id] || 0;
+        return `
+            <div class="category-card" data-category="${c.slug}">
+                <div class="category-icon">
+                    ${c.image_url
+                        ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy" decoding="async">`
+                        : `<i class="${CATEGORY_ICONS[c.slug] || 'fas fa-tag'}" style="font-size:36px;color:var(--primary);"></i>`
+                    }
+                </div>
+                <h4>${c.name}</h4>
+                <span class="category-count">${count > 0 ? count + ' Products' : 'Coming Soon'}</span>
+            </div>
+        `;
+    }).join('');
+
+    // Re-attach click handlers
+    grid.querySelectorAll('.category-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const cat = card.dataset.category;
+            if (cat) filterByCategory(cat);
+        });
+    });
+}
+
+// ===== CART =====
 function saveCart() {
     localStorage.setItem('choicekart_cart', JSON.stringify(cart));
     updateCartUI();
@@ -470,19 +197,19 @@ function updateCartUI() {
             if (addBtn) addBtn.style.display = 'flex';
             if (qtyCtrl) qtyCtrl.classList.remove('active');
         });
-        // Show 4 popular products in empty cart
+        // Show popular products in empty cart
         const emptyProds = document.getElementById('cart-empty-products');
         if (emptyProds) {
             const popular = products.filter(p => p.discount > 0).slice(0, 4);
             emptyProds.innerHTML = '<h4><i class="fas fa-fire" style="color:#E53935;"></i> Today\'s Popular Picks</h4>' +
                 popular.map(p => `
-                    <div class="cart-empty-product" onclick="addToCart(${p.id})">
+                    <div class="cart-empty-product" onclick="addToCart('${p.id}')">
                         <img src="${p.image}" alt="${p.name}">
                         <div class="cep-info">
                             <div class="cep-name">${p.name}</div>
                             <div class="cep-price">\u20B9${p.price} <span style="text-decoration:line-through;color:#999;font-weight:400;font-size:11px;">\u20B9${p.originalPrice}</span></div>
                         </div>
-                        <button class="cep-add" onclick="event.stopPropagation(); addToCart(${p.id})">+ Add</button>
+                        <button class="cep-add" onclick="event.stopPropagation(); addToCart('${p.id}')">+ Add</button>
                     </div>
                 `).join('');
         }
@@ -502,11 +229,11 @@ function updateCartUI() {
                 <div class="cart-item-price">\u20B9${item.price} \u00D7 ${item.qty} = \u20B9${(item.price * item.qty).toLocaleString('en-IN')}</div>
             </div>
             <div class="cart-item-qty">
-                <button onclick="updateQty(${item.id}, -1)">\u2212</button>
+                <button onclick="updateQty('${item.id}', -1)">\u2212</button>
                 <span>${item.qty}</span>
-                <button onclick="updateQty(${item.id}, 1)">+</button>
+                <button onclick="updateQty('${item.id}', 1)">+</button>
             </div>
-            <button class="cart-item-remove" onclick="removeFromCart(${item.id})" title="Remove">
+            <button class="cart-item-remove" onclick="removeFromCart('${item.id}')" title="Remove">
                 <i class="fas fa-trash-alt"></i>
             </button>
         </div>
@@ -520,7 +247,7 @@ function updateCartUI() {
 
     // Update product card buttons
     document.querySelectorAll('.product-card').forEach(card => {
-        const id = parseInt(card.dataset.id);
+        const id = card.dataset.id;
         const cartItem = cart.find(i => i.id === id);
         const addBtn = card.querySelector('.add-to-cart-btn');
         const qtyCtrl = card.querySelector('.qty-controls');
@@ -540,7 +267,15 @@ function updateCartUI() {
 function renderProducts(filterCategory = 'all') {
     const grid = document.getElementById('products-grid');
     if (!grid) return;
-    const filtered = filterCategory === 'all' ? products : products.filter(p => p.category === filterCategory);
+
+    const filtered = filterCategory === 'all'
+        ? products
+        : products.filter(p => p.category === filterCategory);
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:#9CA3AF;"><i class="fas fa-box-open" style="font-size:52px;margin-bottom:20px;display:block;"></i><p style="font-size:18px;font-weight:600;color:#5A5D72;margin-bottom:8px;">No products available yet</p><p style="font-size:14px;">Products will appear here once added by admin.</p></div>';
+        return;
+    }
 
     grid.innerHTML = filtered.map(product => `
         <div class="product-card" data-id="${product.id}">
@@ -549,7 +284,7 @@ function renderProducts(filterCategory = 'all') {
                 <i class="far fa-heart"></i>
             </button>
             <div class="product-image">
-                <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
+                <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" onerror="this.src='${PLACEHOLDER_IMG}'">
             </div>
             <div class="product-info">
                 <div class="product-brand">${product.brand}</div>
@@ -560,13 +295,13 @@ function renderProducts(filterCategory = 'all') {
                     ${product.originalPrice > product.price ? `<span class="price-original">\u20B9${product.originalPrice}</span>` : ''}
                     ${product.discount > 0 ? `<span class="price-save">Save \u20B9${product.originalPrice - product.price}</span>` : ''}
                 </div>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
                     <i class="fas fa-cart-plus"></i> Add to Cart
                 </button>
                 <div class="qty-controls">
-                    <button onclick="updateQty(${product.id}, -1)">\u2212</button>
+                    <button onclick="updateQty('${product.id}', -1)">\u2212</button>
                     <span class="qty-value">1</span>
-                    <button onclick="updateQty(${product.id}, 1)">+</button>
+                    <button onclick="updateQty('${product.id}', 1)">+</button>
                 </div>
             </div>
         </div>
@@ -593,7 +328,7 @@ function toggleWishlist(btn) {
     const icon = btn.querySelector('i');
     if (btn.classList.contains('active')) {
         icon.classList.remove('far'); icon.classList.add('fas');
-        showToast('Wishlist feature coming soon! Stay tuned.');
+        showToast('Added to Wishlist!');
     } else {
         icon.classList.remove('fas'); icon.classList.add('far');
         showToast('Removed from Wishlist');
@@ -634,18 +369,22 @@ function handleSearch(e) {
     e.preventDefault();
     const query = document.getElementById('search-input').value.trim().toLowerCase();
     if (!query) { renderProducts('all'); document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' }); return; }
-    const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query) || p.category.toLowerCase().includes(query));
+
+    const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        p.brand.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query)
+    );
+
     const grid = document.getElementById('products-grid');
     if (filtered.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:#9CA3AF;"><i class="fas fa-search" style="font-size:52px;margin-bottom:20px;display:block;"></i><p style="font-size:18px;font-weight:600;color:#5A5D72;margin-bottom:8px;">No products found for "' + query + '"</p><p style="font-size:14px;">Try searching for atta, rice, dal, tomato, milk...</p></div>';
     } else {
-        // Temporarily render filtered
+        // Temporarily swap products for rendering
         const origProducts = [...products];
-        products.length = 0;
-        products.push(...filtered);
+        products = filtered;
         renderProducts('all');
-        products.length = 0;
-        products.push(...origProducts);
+        products = origProducts;
     }
     document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
 }
@@ -670,18 +409,17 @@ function initScrollEffects() {
 }
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded', () => {
-    renderProducts('all');
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load data from Supabase
+    await Promise.all([loadCategories(), loadProducts()]);
+
     updateCartUI();
     initScrollEffects();
     document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
     document.getElementById('search-form')?.addEventListener('submit', handleSearch);
-    document.querySelectorAll('.category-card').forEach(card => {
-        card.addEventListener('click', () => { const cat = card.dataset.category; if (cat) filterByCategory(cat); });
-    });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCart(); closeLoginModal(); } });
 
-    // === Premium Enhancements Init ===
+    // Premium enhancements
     initFadeInAnimations();
     initCounterAnimations();
     initOfferAutoRotation();
@@ -740,7 +478,6 @@ function animateCounter(el) {
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        // Ease out cubic
         const eased = 1 - Math.pow(1 - progress, 3);
         const current = Math.floor(eased * target);
         el.textContent = current.toLocaleString('en-IN') + suffix;
@@ -751,16 +488,14 @@ function animateCounter(el) {
     requestAnimationFrame(update);
 }
 
-// 3. Auto-Rotating Offers - Cards Gently Highlight One at a Time
+// 3. Auto-Rotating Offers
 function initOfferAutoRotation() {
     const offerCards = document.querySelectorAll('.offer-card');
     if (offerCards.length === 0) return;
 
     let currentIndex = 0;
     setInterval(() => {
-        // Remove highlight from all
         offerCards.forEach(card => card.classList.remove('offer-highlight'));
-        // Add highlight to current
         offerCards[currentIndex].classList.add('offer-highlight');
         currentIndex = (currentIndex + 1) % offerCards.length;
     }, 3000);
@@ -811,9 +546,8 @@ function initHeaderShrink() {
     });
 }
 
-// 6. Product Image Shimmer - Mark Images as Loaded
+// 6. Product Image Shimmer
 function initProductImageShimmer() {
-    // Observe the products grid for dynamically rendered products
     const grid = document.getElementById('products-grid');
     if (!grid) return;
 
@@ -837,7 +571,6 @@ function initProductImageShimmer() {
 
     mutationObs.observe(grid, { childList: true, subtree: true });
 
-    // Also handle already rendered products
     const existingImages = grid.querySelectorAll('.product-image');
     existingImages.forEach(wrapper => {
         const img = wrapper.querySelector('img');

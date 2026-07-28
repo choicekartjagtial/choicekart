@@ -97,16 +97,10 @@
 
     <!-- ===== CATEGORY NAV ===== -->
     <nav class="category-nav">
-        <div class="container">
+        <div class="container" id="category-nav-container">
             <a href="#" class="all-categories"><i class="fas fa-th-large"></i> All Categories</a>
             <a href="#" class="active" onclick="filterByCategory('all', this); return false;">All</a>
-            <a href="#" onclick="filterByCategory('grocery', this); return false;"><i class="fas fa-shopping-basket"></i> Grocery</a>
-            <a href="#" onclick="filterByCategory('fruits', this); return false;"><i class="fas fa-apple-alt"></i> Fruits</a>
-            <a href="#" onclick="filterByCategory('vegetables', this); return false;"><i class="fas fa-carrot"></i> Vegetables</a>
-            <a href="#" onclick="filterByCategory('dairy', this); return false;"><i class="fas fa-cheese"></i> Dairy</a>
-            <a href="#" onclick="filterByCategory('snacks', this); return false;"><i class="fas fa-cookie-bite"></i> Snacks</a>
-            <a href="#" onclick="filterByCategory('beverages', this); return false;"><i class="fas fa-mug-hot"></i> Beverages</a>
-            <a href="#" onclick="filterByCategory('household', this); return false;"><i class="fas fa-home"></i> Household</a>
+            <!-- Categories loaded dynamically from Supabase -->
             <a href="#" class="offers-link"><i class="fas fa-bolt"></i> Offers</a>
         </div>
     </nav>
@@ -237,56 +231,12 @@
                 <h2>Shop by Category</h2>
                 <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
             </div>
-            <div class="categories-grid">
-                <div class="category-card" data-category="grocery">
-                    <div class="category-icon grocery">
-                        <img src="assets/images/products/flour/aashirvaad-whole-wheat-atta.jpg" alt="Grocery" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Grocery</h4>
-                    <span class="category-count">120+ Products</span>
-                </div>
-                <div class="category-card" data-category="fruits">
-                    <div class="category-icon fruits">
-                        <img src="assets/images/downloads/Apple - Shimla, Premium.jpg" alt="Fruits" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Fresh Fruits</h4>
-                    <span class="category-count">40+ Products</span>
-                </div>
-                <div class="category-card" data-category="vegetables">
-                    <div class="category-icon vegetables">
-                        <img src="assets/images/downloads/Fresh Tomato - Hybrid, Organically Grown.jpg" alt="Vegetables" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Vegetables</h4>
-                    <span class="category-count">50+ Products</span>
-                </div>
-                <div class="category-card" data-category="dairy">
-                    <div class="category-icon dairy">
-                        <img src="assets/images/downloads/Amul Taaza Toned Fresh Milk.jpg" alt="Dairy" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Dairy &amp; Eggs</h4>
-                    <span class="category-count">30+ Products</span>
-                </div>
-                <div class="category-card" data-category="snacks">
-                    <div class="category-icon snacks">
-                        <img src="assets/images/downloads/Lay's Potato Chips - Classic Salted.jpg" alt="Snacks" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Snacks</h4>
-                    <span class="category-count">60+ Products</span>
-                </div>
-                <div class="category-card" data-category="beverages">
-                    <div class="category-icon beverages">
-                        <img src="assets/images/downloads/Tata Tea Premium - Rich & Aromatic.jpg" alt="Beverages" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Beverages</h4>
-                    <span class="category-count">35+ Products</span>
-                </div>
-                <div class="category-card" data-category="household">
-                    <div class="category-icon household">
-                        <img src="assets/images/downloads/Surf Excel Matic Top Load Detergent.jpg" alt="Household" loading="lazy" decoding="async">
-                    </div>
-                    <h4>Household</h4>
-                    <span class="category-count">45+ Products</span>
-                </div>
+            <div class="categories-grid" id="categories-grid">
+                <!-- Categories loaded dynamically from Supabase -->
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
             </div>
         </div>
     </section>
@@ -778,6 +728,15 @@
         <p class="modal-footer-text">Choice Kart by Varnika Group Pvt Ltd</p>
     </div>
 
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        // CDN exports global `supabase` with createClient — create client as `db`
+        const db = supabase.createClient(
+            'https://hxfivwycxvjifrznqpqy.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4Zml2d3ljeHZqaWZyem5xcHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTIzMDYsImV4cCI6MjEwMDgyODMwNn0.eYUsyopbxij-ETe3wNa001A1K3fiMIwIUjI-oE-4YcU'
+        );
+    </script>
     <!-- JavaScript -->
     <script src="js/main.js"></script>
 

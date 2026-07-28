@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choice Kart - Admin Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="../assets/images/logo.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="loginPage" class="login-page">
+    <div class="login-card">
+        <div class="logo">
+            <h1><i class="fas fa-shopping-cart"></i> CHOICE KART</h1>
+            <p>Admin Dashboard</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="admin@choicekart.com" value="admin@choicekart.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+            </button>
+            <p id="loginError" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
+        </form>
+    </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD ===== -->
+<div id="adminDashboard" class="admin-layout" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-shopping-cart"></i> CHOICE KART</h2>
+            <span>Admin Panel</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">Main</div>
+            <div class="nav-item active" data-section="dashboard">
+                <i class="fas fa-th-large"></i> Dashboard
+            </div>
+
+            <div class="nav-section">Catalog</div>
+            <div class="nav-item" data-section="products">
+                <i class="fas fa-box-open"></i> Products
+            </div>
+            <div class="nav-item" data-section="categories">
+                <i class="fas fa-tags"></i> Categories
+            </div>
+
+            <div class="nav-section">Sales</div>
+            <div class="nav-item" data-section="orders">
+                <i class="fas fa-shopping-bag"></i> Orders
+                <span class="badge" id="pendingOrdersBadge" style="display:none;">0</span>
+            </div>
+            <div class="nav-item" data-section="customers">
+                <i class="fas fa-users"></i> Customers
+            </div>
+
+            <div class="nav-section">Delivery</div>
+            <div class="nav-item" data-section="delivery-boys">
+                <i class="fas fa-motorcycle"></i> Delivery Boys
+            </div>
+            <div class="nav-item" data-section="delivery-charges">
+                <i class="fas fa-route"></i> Delivery Charges
+            </div>
+
+            <div class="nav-section">Marketing</div>
+            <div class="nav-item" data-section="coupons">
+                <i class="fas fa-ticket-alt"></i> Coupons
+            </div>
+            <div class="nav-item" data-section="banners">
+                <i class="fas fa-images"></i> Banners
+            </div>
+
+            <div class="nav-section">POS</div>
+            <div class="nav-item" data-section="billing">
+                <i class="fas fa-cash-register"></i> Billing
+            </div>
+
+            <div class="nav-section">Settings</div>
+            <div class="nav-item" data-section="staff">
+                <i class="fas fa-user-shield"></i> Staff Management
+            </div>
+            <div class="nav-item" data-section="service-areas">
+                <i class="fas fa-map-marked-alt"></i> Service Areas
+            </div>
+            <div class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i> Store Settings
+            </div>
+        </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+        <!-- HEADER -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+                <h2 id="pageTitle">Dashboard</h2>
+            </div>
+            <div class="header-right">
+                <div>
+                    <div class="admin-name" id="adminName">Admin</div>
+                    <div class="admin-role" id="adminRole">Owner</div>
+                </div>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </header>
+
+        <div class="page-content">
+
+            <!-- ===== DASHBOARD SECTION ===== -->
+            <div class="section active" id="sec-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-box-open"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statProducts">0</h3>
+                            <p>Total Products</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statOrders">0</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statCustomers">0</h3>
+                            <p>Customers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statLowStock">0</h3>
+                            <p>Low Stock Items</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Orders</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentOrdersTable">
+                                    <tr><td colspan="5" class="empty-state"><i class="fas fa-inbox"></i><h4>No orders yet</h4></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== PRODUCTS SECTION ===== -->
+            <div class="section" id="sec-products">
+                <div class="toolbar">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="productSearch" placeholder="Search products...">
+                    </div>
+                    <select class="form-control" id="productCategoryFilter" style="width:auto;min-width:160px;">
+                        <option value="">All Categories</option>
+                    </select>
+                    <button class="btn btn-primary" id="addProductBtn">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <tr><td colspan="6"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CATEGORIES SECTION ===== -->
+            <div class="section" id="sec-categories">
+                <div class="toolbar">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="categorySearch" placeholder="Search categories...">
+                    </div>
+                    <button class="btn btn-primary" id="addCategoryBtn">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Subcategories</th>
+                                    <th>Products</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTable">
+                                <tr><td colspan="5"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:24px;">
+                    <div class="card-header">
+                        <h3>Subcategories</h3>
+                        <button class="btn btn-primary btn-sm" id="addSubcategoryBtn">
+                            <i class="fas fa-plus"></i> Add Subcategory
+                        </button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subcategory</th>
+                                    <th>Parent Category</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subcategoriesTable">
+                                <tr><td colspan="4"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ORDERS SECTION ===== -->
+            <div class="section" id="sec-orders">
+                <div class="toolbar">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="orderSearch" placeholder="Search orders...">
+                    </div>
+                    <select class="form-control" id="orderStatusFilter" style="width:auto;min-width:160px;">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTable">
+                                <tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No orders yet</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CUSTOMERS SECTION ===== -->
+            <div class="section" id="sec-customers">
+                <div class="toolbar">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="customerSearch" placeholder="Search customers...">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Orders</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTable">
+                                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><h4>No customers yet</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DELIVERY BOYS SECTION ===== -->
+            <div class="section" id="sec-delivery-boys">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addDeliveryBoyBtn">
+                        <i class="fas fa-plus"></i> Add Delivery Boy
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Vehicle</th>
+                                    <th>Deliveries</th>
+                                    <th>Rating</th>
+                                    <th>Available</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveryBoysTable">
+                                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-motorcycle"></i><h4>No delivery boys added</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DELIVERY CHARGES SECTION ===== -->
+            <div class="section" id="sec-delivery-charges">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addDeliveryChargeBtn">
+                        <i class="fas fa-plus"></i> Add Slab
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Distance Range</th>
+                                    <th>Charge</th>
+                                    <th>Free Above</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deliveryChargesTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== COUPONS SECTION ===== -->
+            <div class="section" id="sec-coupons">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addCouponBtn">
+                        <i class="fas fa-plus"></i> Add Coupon
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Min Order</th>
+                                    <th>Used</th>
+                                    <th>Valid Until</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couponsTable">
+                                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-ticket-alt"></i><h4>No coupons yet</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== BANNERS SECTION ===== -->
+            <div class="section" id="sec-banners">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addBannerBtn">
+                        <i class="fas fa-plus"></i> Add Banner
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Banner</th>
+                                    <th>Title</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bannersTable">
+                                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-images"></i><h4>No banners yet</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SERVICE AREAS SECTION ===== -->
+            <div class="section" id="sec-service-areas">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addServiceAreaBtn">
+                        <i class="fas fa-plus"></i> Add Service Area
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pincode</th>
+                                    <th>Area Name</th>
+                                    <th>City</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="serviceAreasTable">
+                                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-map-marked-alt"></i><h4>No service areas added</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STORE SETTINGS SECTION ===== -->
+            <div class="section" id="sec-settings">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Store Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="settingsForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Store Name</label>
+                                    <input type="text" class="form-control" id="setStoreName">
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="text" class="form-control" id="setStorePhone">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control" id="setStoreEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" class="form-control" id="setStoreAddress">
+                                </div>
+                            </div>
+                            <div class="form-row three">
+                                <div class="form-group">
+                                    <label>Min Order Amount (₹)</label>
+                                    <input type="number" class="form-control" id="setMinOrder">
+                                </div>
+                                <div class="form-group">
+                                    <label>Opening Time</label>
+                                    <input type="time" class="form-control" id="setOpenTime">
+                                </div>
+                                <div class="form-group">
+                                    <label>Closing Time</label>
+                                    <input type="time" class="form-control" id="setCloseTime">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Delivery Radius (KM)</label>
+                                    <input type="number" class="form-control" id="setDeliveryRadius">
+                                </div>
+                                <div class="form-group">
+                                    <label>GST Number</label>
+                                    <input type="text" class="form-control" id="setGST">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STAFF MANAGEMENT SECTION ===== -->
+            <div class="section" id="sec-staff">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addStaffBtn">
+                        <i class="fas fa-plus"></i> Add Staff
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTable">
+                                <tr><td colspan="6"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== BILLING / POS SECTION ===== -->
+            <div class="section" id="sec-billing">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-cash-register"></i> In-Store Billing (POS)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;">
+                                <label>Search Product (Name or Barcode)</label>
+                                <input type="text" class="form-control" id="billingSearch" placeholder="Scan barcode or type product name..." autofocus>
+                            </div>
+                            <div class="form-group">
+                                <label>Customer Phone (Optional)</label>
+                                <input type="text" class="form-control" id="billingCustomerPhone" placeholder="9876543210">
+                            </div>
+                        </div>
+
+                        <!-- Billing Items Table -->
+                        <div class="table-wrapper" style="margin-top:16px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Qty</th>
+                                        <th>Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billingItems">
+                                    <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:40px;">Search and add products to start billing</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Search Results Dropdown -->
+                        <div id="billingSearchResults" style="display:none;position:absolute;z-index:10;background:white;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);max-height:250px;overflow-y:auto;width:400px;"></div>
+
+                        <!-- Billing Summary -->
+                        <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+                            <div style="min-width:300px;">
+                                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;">
+                                    <span>Subtotal</span>
+                                    <span id="billingSubtotal">₹0</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;color:var(--success);">
+                                    <span>Discount</span>
+                                    <span id="billingDiscount">-₹0</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:14px;color:var(--text-muted);">
+                                    <span>GST</span>
+                                    <span id="billingGST">₹0</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:12px 0;font-size:18px;font-weight:700;border-top:2px solid var(--border);">
+                                    <span>Grand Total</span>
+                                    <span id="billingTotal">₹0</span>
+                                </div>
+                                <div class="form-row" style="margin-top:12px;">
+                                    <button class="btn btn-primary btn-lg" id="billingPayBtn" style="flex:1;">
+                                        <i class="fas fa-check-circle"></i> Complete Sale
+                                    </button>
+                                </div>
+                                <div class="form-row" style="margin-top:8px;gap:8px;">
+                                    <button class="btn btn-outline" id="billingClearBtn" style="flex:1;">
+                                        <i class="fas fa-times"></i> Clear
+                                    </button>
+                                    <button class="btn btn-outline" id="billingPrintBtn" style="flex:1;">
+                                        <i class="fas fa-print"></i> Print Bill
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="productModalTitle">Add Product</h3>
+            <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Product Name *</label>
+                        <input type="text" class="form-control" id="productName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telugu Name</label>
+                        <input type="text" class="form-control" id="productNameTe">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select class="form-control" id="productCategory" required>
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subcategory</label>
+                        <select class="form-control" id="productSubcategory">
+                            <option value="">Select Subcategory</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="productDescription" rows="2"></textarea>
+                </div>
+                <div class="form-row three">
+                    <div class="form-group">
+                        <label>MRP (₹) *</label>
+                        <input type="number" step="0.01" class="form-control" id="productMRP" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Selling Price (₹) *</label>
+                        <input type="number" step="0.01" class="form-control" id="productSellingPrice" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Qty *</label>
+                        <input type="number" class="form-control" id="productStock" required>
+                    </div>
+                </div>
+                <div class="form-row three">
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <select class="form-control" id="productUnit">
+                            <option value="piece">Piece</option>
+                            <option value="kg">KG</option>
+                            <option value="g">Gram</option>
+                            <option value="liter">Liter</option>
+                            <option value="ml">ML</option>
+                            <option value="pack">Pack</option>
+                            <option value="dozen">Dozen</option>
+                            <option value="bundle">Bundle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Unit Value</label>
+                        <input type="number" step="0.01" class="form-control" id="productUnitValue" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Low Stock Alert</label>
+                        <input type="number" class="form-control" id="productLowStock" value="10">
+                    </div>
+                </div>
+                <div class="form-row three">
+                    <div class="form-group">
+                        <label>Brand</label>
+                        <input type="text" class="form-control" id="productBrand">
+                    </div>
+                    <div class="form-group">
+                        <label>Barcode</label>
+                        <input type="text" class="form-control" id="productBarcode">
+                    </div>
+                    <div class="form-group">
+                        <label>GST %</label>
+                        <input type="number" step="0.01" class="form-control" id="productGST" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Product Image</label>
+                    <div class="image-upload" id="productImageUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload image (JPG, PNG)</p>
+                        <input type="file" id="productImageFile" accept="image/*">
+                    </div>
+                    <img id="productImagePreview" class="image-preview" style="display:none;">
+                    <input type="hidden" id="productImageUrl">
+                </div>
+                <div class="form-group">
+                    <label>Featured?</label>
+                    <select class="form-control" id="productFeatured">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('productModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveProductBtn">
+                <i class="fas fa-save"></i> Save Product
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal-overlay" id="categoryModal">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 id="categoryModalTitle">Add Category</h3>
+            <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label>Category Name *</label>
+                    <input type="text" class="form-control" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label>Telugu Name</label>
+                    <input type="text" class="form-control" id="categoryNameTe">
+                </div>
+                <div class="form-group">
+                    <label>Category Image</label>
+                    <div class="image-upload" id="categoryImageUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload image</p>
+                        <input type="file" id="categoryImageFile" accept="image/*">
+                    </div>
+                    <img id="categoryImagePreview" class="image-preview" style="display:none;">
+                    <input type="hidden" id="categoryImageUrl">
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" class="form-control" id="categorySortOrder" value="0">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('categoryModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveCategoryBtn">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Subcategory Modal -->
+<div class="modal-overlay" id="subcategoryModal">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 id="subcategoryModalTitle">Add Subcategory</h3>
+            <button class="modal-close" onclick="closeModal('subcategoryModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="subcategoryForm">
+                <input type="hidden" id="subcategoryId">
+                <div class="form-group">
+                    <label>Parent Category *</label>
+                    <select class="form-control" id="subcategoryParent" required>
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subcategory Name *</label>
+                    <input type="text" class="form-control" id="subcategoryName" required>
+                </div>
+                <div class="form-group">
+                    <label>Telugu Name</label>
+                    <input type="text" class="form-control" id="subcategoryNameTe">
+                </div>
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <input type="number" class="form-control" id="subcategorySortOrder" value="0">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('subcategoryModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveSubcategoryBtn">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Staff Modal -->
+<div class="modal-overlay" id="staffModal">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 id="staffModalTitle">Add Staff</h3>
+            <button class="modal-close" onclick="closeModal('staffModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="staffForm">
+                <input type="hidden" id="staffId">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" class="form-control" id="staffName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" class="form-control" id="staffEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="text" class="form-control" id="staffPassword" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" class="form-control" id="staffPhone">
+                    </div>
+                    <div class="form-group">
+                        <label>Role *</label>
+                        <select class="form-control" id="staffRole" required>
+                            <option value="staff">Staff</option>
+                            <option value="manager">Manager</option>
+                            <option value="owner">Owner</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('staffModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveStaffBtn">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Coupon Modal -->
+<div class="modal-overlay" id="couponModal">
+    <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+            <h3 id="couponModalTitle">Add Coupon</h3>
+            <button class="modal-close" onclick="closeModal('couponModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="couponForm">
+                <input type="hidden" id="couponId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Coupon Code *</label>
+                        <input type="text" class="form-control" id="couponCode" required style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Type *</label>
+                        <select class="form-control" id="couponType" required>
+                            <option value="percentage">Percentage (%)</option>
+                            <option value="fixed">Fixed Amount (₹)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Discount Value *</label>
+                        <input type="number" step="0.01" class="form-control" id="couponValue" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Min Order (₹)</label>
+                        <input type="number" step="0.01" class="form-control" id="couponMinOrder" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Max Discount (₹)</label>
+                        <input type="number" step="0.01" class="form-control" id="couponMaxDiscount">
+                    </div>
+                    <div class="form-group">
+                        <label>Usage Limit</label>
+                        <input type="number" class="form-control" id="couponUsageLimit">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Valid Until</label>
+                    <input type="date" class="form-control" id="couponValidUntil">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control" id="couponDescription" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('couponModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveCouponBtn">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Boy Modal -->
+<div class="modal-overlay" id="deliveryBoyModal">
+    <div class="modal" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 id="deliveryBoyModalTitle">Add Delivery Boy</h3>
+            <button class="modal-close" onclick="closeModal('deliveryBoyModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="deliveryBoyForm">
+                <input type="hidden" id="deliveryBoyId">
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" class="form-control" id="deliveryBoyName" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone *</label>
+                    <input type="text" class="form-control" id="deliveryBoyPhone" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <select class="form-control" id="deliveryBoyVehicle">
+                            <option value="bike">Bike</option>
+                            <option value="bicycle">Bicycle</option>
+                            <option value="scooter">Scooter</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Number</label>
+                        <input type="text" class="form-control" id="deliveryBoyVehicleNo">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('deliveryBoyModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveDeliveryBoyBtn">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+    const db = supabase.createClient(
+        'https://hxfivwycxvjifrznqpqy.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4Zml2d3ljeHZqaWZyem5xcHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTIzMDYsImV4cCI6MjEwMDgyODMwNn0.eYUsyopbxij-ETe3wNa001A1K3fiMIwIUjI-oE-4YcU'
+    );
+    console.log('Supabase connected:', !!db);
+</script>
+<script src="js/admin.js"></script>
+</body>
+</html>
