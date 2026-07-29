@@ -1022,6 +1022,52 @@ window.deleteBanner = async function(id) {
     loadBanners();
 };
 
+// Add Banner
+document.getElementById('addBannerBtn').addEventListener('click', () => {
+    document.getElementById('bannerForm').reset();
+    document.getElementById('bannerImageUrl').value = '';
+    document.getElementById('bannerImagePreview').style.display = 'none';
+    openModal('bannerModal');
+});
+
+// Banner image upload
+document.getElementById('bannerImageFile').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const preview = document.getElementById('bannerImagePreview');
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = 'block';
+    showToast('Uploading banner...', 'warning');
+    const url = await uploadImage(file, 'banners');
+    if (url) {
+        document.getElementById('bannerImageUrl').value = url;
+        showToast('Banner image uploaded!');
+    } else {
+        showToast('Upload failed — check console', 'error');
+    }
+});
+
+// Save Banner
+document.getElementById('saveBannerBtn').addEventListener('click', async () => {
+    const title = document.getElementById('bannerTitle').value.trim();
+    const imageUrl = document.getElementById('bannerImageUrl').value.trim();
+    if (!title) { showToast('Banner title is required', 'error'); return; }
+    if (!imageUrl) { showToast('Please upload a banner image', 'error'); return; }
+
+    const { error } = await db.from('banners').insert({
+        title,
+        image_url: imageUrl,
+        link_url: document.getElementById('bannerLinkUrl').value.trim() || null,
+        position: document.getElementById('bannerPosition').value,
+        sort_order: parseInt(document.getElementById('bannerSortOrder').value) || 0
+    });
+
+    if (error) { showToast(error.message, 'error'); return; }
+    showToast('Banner added successfully!');
+    closeModal('bannerModal');
+    loadBanners();
+});
+
 // ===== SERVICE AREAS =====
 async function loadServiceAreas() {
     if (!db) return;
@@ -1055,6 +1101,63 @@ window.deleteServiceArea = async function(id) {
     showToast('Service area deleted!');
     loadServiceAreas();
 };
+
+// Add Service Area
+document.getElementById('addServiceAreaBtn').addEventListener('click', () => {
+    document.getElementById('serviceAreaForm').reset();
+    document.getElementById('serviceAreaCity').value = 'Jagtial';
+    document.getElementById('serviceAreaState').value = 'Telangana';
+    openModal('serviceAreaModal');
+});
+
+document.getElementById('saveServiceAreaBtn').addEventListener('click', async () => {
+    const pincode = document.getElementById('serviceAreaPincode').value.trim();
+    const areaName = document.getElementById('serviceAreaName').value.trim();
+    if (!pincode || !areaName) { showToast('Pincode and area name are required', 'error'); return; }
+
+    const { error } = await db.from('service_areas').insert({
+        pincode,
+        area_name: areaName,
+        city: document.getElementById('serviceAreaCity').value.trim() || 'Jagtial',
+        state: document.getElementById('serviceAreaState').value.trim() || 'Telangana'
+    });
+
+    if (error) { showToast(error.message, 'error'); return; }
+    showToast('Service area added!');
+    closeModal('serviceAreaModal');
+    loadServiceAreas();
+});
+
+// Add Delivery Charge
+document.getElementById('addDeliveryChargeBtn').addEventListener('click', () => {
+    document.getElementById('deliveryChargeForm').reset();
+    openModal('deliveryChargeModal');
+});
+
+document.getElementById('saveDeliveryChargeBtn').addEventListener('click', async () => {
+    const minDist = parseFloat(document.getElementById('dcMinDistance').value);
+    const maxDist = parseFloat(document.getElementById('dcMaxDistance').value);
+    const charge = parseFloat(document.getElementById('dcCharge').value);
+
+    if (isNaN(minDist) || isNaN(maxDist) || isNaN(charge)) {
+        showToast('Please fill all required fields', 'error'); return;
+    }
+    if (minDist >= maxDist) {
+        showToast('Max distance must be greater than min distance', 'error'); return;
+    }
+
+    const { error } = await db.from('delivery_charges').insert({
+        min_distance_km: minDist,
+        max_distance_km: maxDist,
+        charge,
+        free_above_amount: parseFloat(document.getElementById('dcFreeAbove').value) || null
+    });
+
+    if (error) { showToast(error.message, 'error'); return; }
+    showToast('Delivery charge slab added!');
+    closeModal('deliveryChargeModal');
+    loadDeliveryCharges();
+});
 
 // ===== STORE SETTINGS =====
 async function loadSettings() {
