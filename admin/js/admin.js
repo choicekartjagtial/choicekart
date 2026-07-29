@@ -1205,6 +1205,7 @@ window.deleteStaff = async function(id) {
 
 // ===== BILLING / POS =====
 let billingCart = [];
+let billingCoupon = null; // { code, discount_type, discount_value, max_discount }
 
 function initBilling() {
     renderBillingCart();
@@ -1329,9 +1330,23 @@ function renderBillingCart() {
     // Calculate totals
     const subtotal = billingCart.reduce((t, i) => t + i.mrp * i.qty, 0);
     const sellingTotal = billingCart.reduce((t, i) => t + i.price * i.qty, 0);
-    const discount = subtotal - sellingTotal;
+    let discount = subtotal - sellingTotal;
+
+    // Apply coupon discount
+    let couponDiscount = 0;
+    if (billingCoupon) {
+        if (billingCoupon.discount_type === 'percentage') {
+            couponDiscount = sellingTotal * billingCoupon.discount_value / 100;
+            if (billingCoupon.max_discount) couponDiscount = Math.min(couponDiscount, billingCoupon.max_discount);
+        } else {
+            couponDiscount = billingCoupon.discount_value;
+        }
+        discount += couponDiscount;
+    }
+
+    const afterDiscount = sellingTotal - couponDiscount;
     const gst = billingCart.reduce((t, i) => t + (i.price * i.qty * i.gst_percent / 100), 0);
-    const grandTotal = sellingTotal + gst;
+    const grandTotal = afterDiscount + gst;
 
     document.getElementById('billingSubtotal').textContent = formatCurrency(subtotal);
     document.getElementById('billingDiscount').textContent = '-' + formatCurrency(discount);
@@ -1348,8 +1363,21 @@ document.getElementById('billingPayBtn').addEventListener('click', async () => {
 
     const sellingTotal = billingCart.reduce((t, i) => t + i.price * i.qty, 0);
     const gst = billingCart.reduce((t, i) => t + (i.price * i.qty * i.gst_percent / 100), 0);
-    const discount = billingCart.reduce((t, i) => t + (i.mrp - i.price) * i.qty, 0);
-    const grandTotal = sellingTotal + gst;
+    let discount = billingCart.reduce((t, i) => t + (i.mrp - i.price) * i.qty, 0);
+
+    // Add coupon discount
+    let couponDiscount = 0;
+    if (billingCoupon) {
+        if (billingCoupon.discount_type === 'percentage') {
+            couponDiscount = sellingTotal * billingCoupon.discount_value / 100;
+            if (billingCoupon.max_discount) couponDiscount = Math.min(couponDiscount, billingCoupon.max_discount);
+        } else {
+            couponDiscount = billingCoupon.discount_value;
+        }
+        discount += couponDiscount;
+    }
+
+    const grandTotal = (sellingTotal - couponDiscount) + gst;
 
     // Create a customer record if phone provided
     let customerId = null;
@@ -1390,12 +1418,18 @@ document.getElementById('billingPayBtn').addEventListener('click', async () => {
         gst_amount: gst,
         total: grandTotal,
         delivered_at: new Date().toISOString(),
+        coupon_code: billingCoupon ? billingCoupon.code : null,
         notes: 'In-store POS billing'
     }).select('*').single();
 
     if (orderErr) {
         showToast('Error creating order: ' + orderErr.message, 'error');
         return;
+    }
+
+    // Update coupon used_count
+    if (billingCoupon) {
+        await db.from('coupons').update({ used_count: billingCoupon.used_count + 1 }).eq('id', billingCoupon.id);
     }
 
     // Add order items
@@ -1427,7 +1461,50 @@ document.getElementById('billingPayBtn').addEventListener('click', async () => {
 
     // Clear cart
     billingCart = [];
+    billingCoupon = null;
     document.getElementById('billingCustomerPhone').value = '';
+    document.getElementById('billingCoupon').value = '';
+    document.getElementById('billingCouponStatus').innerHTML = '';
+    renderBillingCart();
+});
+
+// Apply Coupon in Billing
+document.getElementById('billingApplyCoupon').addEventListener('click', async () => {
+    const code = document.getElementById('billingCoupon').value.trim().toUpperCase();
+    const statusEl = document.getElementById('billingCouponStatus');
+
+    if (!code) { statusEl.innerHTML = '<span style="color:var(--danger);">Enter a coupon code</span>'; return; }
+
+    const { data: coupon, error } = await db
+        .from('coupons')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
+
+    if (error || !coupon) {
+        billingCoupon = null;
+        statusEl.innerHTML = '<span style="color:var(--danger);"><i class="fas fa-times-circle"></i> Invalid coupon code</span>';
+        renderBillingCart();
+        return;
+    }
+
+    // Check min order
+    const sellingTotal = billingCart.reduce((t, i) => t + i.price * i.qty, 0);
+    if (coupon.min_order_amount && sellingTotal < coupon.min_order_amount) {
+        statusEl.innerHTML = `<span style="color:var(--danger);"><i class="fas fa-times-circle"></i> Min order ${formatCurrency(coupon.min_order_amount)} required</span>`;
+        return;
+    }
+
+    // Check usage limit
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+        statusEl.innerHTML = '<span style="color:var(--danger);"><i class="fas fa-times-circle"></i> Coupon usage limit reached</span>';
+        return;
+    }
+
+    billingCoupon = coupon;
+    const discountText = coupon.discount_type === 'percentage' ? coupon.discount_value + '% off' : formatCurrency(coupon.discount_value) + ' off';
+    statusEl.innerHTML = `<span style="color:var(--success);"><i class="fas fa-check-circle"></i> ${code} applied — ${discountText}!</span>`;
     renderBillingCart();
 });
 
@@ -1435,7 +1512,10 @@ document.getElementById('billingPayBtn').addEventListener('click', async () => {
 document.getElementById('billingClearBtn').addEventListener('click', () => {
     if (billingCart.length > 0 && !confirm('Clear all items from the bill?')) return;
     billingCart = [];
+    billingCoupon = null;
     document.getElementById('billingCustomerPhone').value = '';
+    document.getElementById('billingCoupon').value = '';
+    document.getElementById('billingCouponStatus').innerHTML = '';
     renderBillingCart();
 });
 

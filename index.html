@@ -105,53 +105,61 @@
         </div>
     </nav>
 
-    <!-- ===== HERO BANNER ===== -->
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <i class="fas fa-bolt"></i> #1 Trusted Grocery Store in Jagtial
-                </div>
-                <h1>
-                    <span class="text-green">Fresh Groceries</span><br>
-                    Delivered to Your<br>
-                    <span class="text-orange">Doorstep</span>
-                </h1>
-                <p>Experience hassle-free grocery shopping with Choice Kart. Premium quality groceries, farm-fresh vegetables &amp; fruits delivered within 30 minutes at unbeatable prices.</p>
-                <div class="hero-buttons">
-                    <a href="#products-section" class="btn-primary">
-                        <i class="fas fa-shopping-bag"></i> Shop Now
-                    </a>
-                    <a href="#categories-section" class="btn-outline">
-                        <i class="fas fa-th-large"></i> Browse Categories
-                    </a>
-                </div>
-                <div class="hero-features">
-                    <div class="hero-feature">
-                        <div class="feature-icon green"><i class="fas fa-shipping-fast"></i></div>
-                        <span>30 Min Delivery</span>
+    <!-- ===== HERO BANNER (Dynamic from Supabase) ===== -->
+    <section class="hero" id="hero-section">
+        <!-- Banner slider container -->
+        <div class="banner-slider" id="banner-slider">
+            <!-- Default hero content (shown if no banners in DB) -->
+            <div class="banner-slide active" id="default-hero">
+                <div class="container">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-bolt"></i> #1 Trusted Grocery Store in Jagtial
+                        </div>
+                        <h1>
+                            <span class="text-green">Fresh Groceries</span><br>
+                            Delivered to Your<br>
+                            <span class="text-orange">Doorstep</span>
+                        </h1>
+                        <p>Experience hassle-free grocery shopping with Choice Kart. Premium quality groceries, farm-fresh vegetables &amp; fruits delivered within 30 minutes at unbeatable prices.</p>
+                        <div class="hero-buttons">
+                            <a href="#products-section" class="btn-primary">
+                                <i class="fas fa-shopping-bag"></i> Shop Now
+                            </a>
+                            <a href="#categories-section" class="btn-outline">
+                                <i class="fas fa-th-large"></i> Browse Categories
+                            </a>
+                        </div>
+                        <div class="hero-features">
+                            <div class="hero-feature">
+                                <div class="feature-icon green"><i class="fas fa-shipping-fast"></i></div>
+                                <span>30 Min Delivery</span>
+                            </div>
+                            <div class="hero-feature">
+                                <div class="feature-icon orange"><i class="fas fa-medal"></i></div>
+                                <span>Premium Quality</span>
+                            </div>
+                            <div class="hero-feature">
+                                <div class="feature-icon blue"><i class="fas fa-hand-holding-usd"></i></div>
+                                <span>Lowest Prices</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="hero-feature">
-                        <div class="feature-icon orange"><i class="fas fa-medal"></i></div>
-                        <span>Premium Quality</span>
-                    </div>
-                    <div class="hero-feature">
-                        <div class="feature-icon blue"><i class="fas fa-hand-holding-usd"></i></div>
-                        <span>Lowest Prices</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-image">
-                <div class="hero-stats">
-                    <div class="stat-icon"><i class="fas fa-rocket"></i></div>
-                    <div class="stat-text">
-                        <strong>Launching Soon</strong>
-                        <small>in Jagtial</small>
+                    <div class="hero-image">
+                        <div class="hero-stats">
+                            <div class="stat-icon"><i class="fas fa-rocket"></i></div>
+                            <div class="stat-text">
+                                <strong>Launching Soon</strong>
+                                <small>in Jagtial</small>
+                            </div>
+                        </div>
+                        <img src="assets/images/logo.jpeg" alt="Choice Kart - Fresh Groceries Delivered" loading="lazy" decoding="async">
                     </div>
                 </div>
-                <img src="assets/images/logo.jpeg" alt="Choice Kart - Fresh Groceries Delivered" loading="lazy" decoding="async">
             </div>
         </div>
+        <!-- Banner dots navigation -->
+        <div class="banner-dots" id="banner-dots"></div>
     </section>
 
     <!-- ===== PROMOTIONAL TICKER ===== -->

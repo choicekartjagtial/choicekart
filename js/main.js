@@ -24,6 +24,61 @@ const CATEGORY_ICONS = {
 
 const PLACEHOLDER_IMG = 'assets/images/logo.jpeg';
 
+// ===== LOAD BANNERS FROM SUPABASE =====
+async function loadBanners() {
+    const { data: banners, error } = await db
+        .from('banners')
+        .select('*')
+        .eq('is_active', true)
+        .eq('position', 'home')
+        .order('sort_order');
+
+    if (error || !banners || banners.length === 0) return; // Keep default hero
+
+    const slider = document.getElementById('banner-slider');
+    const dots = document.getElementById('banner-dots');
+    const defaultHero = document.getElementById('default-hero');
+
+    // Hide default hero, add banner slides
+    defaultHero.classList.remove('active');
+    defaultHero.style.display = 'none';
+
+    banners.forEach((b, i) => {
+        const slide = document.createElement('div');
+        slide.className = `banner-slide image-banner ${i === 0 ? 'active' : ''}`;
+        slide.innerHTML = b.link_url
+            ? `<a href="${b.link_url}"><img src="${b.image_url}" alt="${b.title}" loading="lazy"></a>`
+            : `<img src="${b.image_url}" alt="${b.title}" loading="lazy">`;
+        slider.appendChild(slide);
+
+        // Add dot
+        const dot = document.createElement('button');
+        dot.className = `banner-dot ${i === 0 ? 'active' : ''}`;
+        dot.onclick = () => goToBanner(i);
+        dots.appendChild(dot);
+    });
+
+    // Auto-scroll if multiple banners
+    if (banners.length > 1) {
+        let current = 0;
+        setInterval(() => {
+            current = (current + 1) % banners.length;
+            goToBanner(current);
+        }, 4000);
+    }
+}
+
+function goToBanner(index) {
+    const slides = document.querySelectorAll('.banner-slide.image-banner');
+    const dots = document.querySelectorAll('.banner-dot');
+    slides.forEach((s, i) => {
+        s.classList.toggle('active', i === index);
+    });
+    dots.forEach((d, i) => {
+        d.classList.toggle('active', i === index);
+    });
+}
+
 // ===== LOAD DATA FROM SUPABASE =====
 async function loadCategories() {
     const { data, error } = await db
@@ -411,7 +466,7 @@ function initScrollEffects() {
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
     // Load data from Supabase
-    await Promise.all([loadCategories(), loadProducts()]);
+    await Promise.all([loadCategories(), loadProducts(), loadBanners()]);
 
     updateCartUI();
     initScrollEffects();
