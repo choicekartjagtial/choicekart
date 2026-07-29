@@ -675,7 +675,7 @@
                     <span class="cart-total-amount">&#8377;0</span>
                 </div>
             </div>
-            <button class="checkout-btn" onclick="showToast('Checkout coming soon! Contact Choice Kart by Varnika Group Pvt Ltd at 9666991993')">
+            <button class="checkout-btn" onclick="openCheckout()">
                 <i class="fas fa-lock"></i> Proceed to Checkout
             </button>
         </div>
@@ -692,54 +692,34 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- ===== LOGIN MODAL ===== -->
+    <!-- ===== LOGIN MODAL (Phone OTP) ===== -->
     <div class="modal-overlay" id="login-overlay" onclick="closeLoginModal()"></div>
     <div class="login-modal" id="login-modal">
         <button class="modal-close" onclick="closeLoginModal()">&times;</button>
         <div class="modal-logo">
             <img src="assets/images/logo.jpeg" alt="Choice Kart" loading="lazy" decoding="async">
         </div>
-        <h3>Welcome to Choice Kart</h3>
-        <p class="modal-tagline">Fast, Fresh &amp; Affordable Grocery Shopping</p>
-        <p class="modal-subtitle">Login &amp; Account features are launching soon!</p>
-        <div class="modal-features">
-            <div class="modal-feature">
-                <i class="fas fa-mobile-alt"></i>
-                <span>OTP Login via Phone</span>
-                <span class="coming-tag">Coming Soon</span>
-            </div>
-            <div class="modal-feature">
-                <i class="fas fa-shopping-bag"></i>
-                <span>Order History &amp; Tracking</span>
-                <span class="coming-tag">Coming Soon</span>
-            </div>
-            <div class="modal-feature">
-                <i class="fas fa-heart"></i>
-                <span>Wishlist &amp; Saved Items</span>
-                <span class="coming-tag">Coming Soon</span>
-            </div>
-            <div class="modal-feature">
-                <i class="fas fa-gift"></i>
-                <span>Rewards &amp; Coupons</span>
-                <span class="coming-tag">Coming Soon</span>
-            </div>
+        <!-- Dynamic login steps rendered by auth.js -->
+        <div id="login-steps"></div>
+    </div>
+
+    <!-- ===== CHECKOUT MODAL ===== -->
+    <div class="modal-overlay" id="checkout-overlay" onclick="closeCheckoutModal()"></div>
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-header">
+            <button class="checkout-back-btn" id="checkout-back" style="display:none;">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h3 id="checkout-title">Checkout</h3>
+            <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
         </div>
-        <div class="modal-divider"><span>Order Now Via</span></div>
-        <div class="modal-actions">
-            <a href="https://wa.me/919666991993?text=Hi%20Choice%20Kart!%20I'd%20like%20to%20place%20an%20order." class="modal-btn whatsapp-btn" target="_blank">
-                <i class="fab fa-whatsapp"></i> WhatsApp Order
-            </a>
-            <a href="tel:9666991993" class="modal-btn call-btn">
-                <i class="fas fa-phone-alt"></i> Call: 9666991993
-            </a>
-        </div>
-        <p class="modal-footer-text">Choice Kart by Varnika Group Pvt Ltd</p>
+        <div class="checkout-progress" id="checkout-progress"></div>
+        <div class="checkout-body" id="checkout-body"></div>
     </div>
 
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script>
-        // CDN exports global `supabase` with createClient — create client as `db`
         const db = supabase.createClient(
             'https://hxfivwycxvjifrznqpqy.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4Zml2d3ljeHZqaWZyem5xcHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTIzMDYsImV4cCI6MjEwMDgyODMwNn0.eYUsyopbxij-ETe3wNa001A1K3fiMIwIUjI-oE-4YcU'
@@ -747,6 +727,8 @@
     </script>
     <!-- JavaScript -->
     <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/checkout.js"></script>
 
 </body>
 </html>

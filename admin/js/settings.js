@@ -27,6 +27,10 @@ async function loadSettings() {
     document.getElementById('setCloseTime').value = settings.closing_time || '';
     document.getElementById('setDeliveryRadius').value = settings.delivery_radius_km || '';
     document.getElementById('setGST').value = settings.gst_number || '';
+
+    // Razorpay keys
+    document.getElementById('setRazorpayKeyId').value = settings.razorpay_key_id || '';
+    document.getElementById('setRazorpayKeySecret').value = settings.razorpay_key_secret || '';
 }
 
 // ===== SAVE STORE SETTINGS =====
@@ -43,7 +47,9 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
         opening_time: document.getElementById('setOpenTime').value,
         closing_time: document.getElementById('setCloseTime').value,
         delivery_radius_km: document.getElementById('setDeliveryRadius').value,
-        gst_number: document.getElementById('setGST').value
+        gst_number: document.getElementById('setGST').value,
+        razorpay_key_id: document.getElementById('setRazorpayKeyId').value,
+        razorpay_key_secret: document.getElementById('setRazorpayKeySecret').value
     };
 
     // Upsert each setting individually
