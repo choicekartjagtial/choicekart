@@ -118,41 +118,33 @@ body {
     margin-bottom: 48px;
 }
 
-/* Real grocery hero images */
-.hero-grocery-image {
+/* Grocery illustration */
+.hero-illustration {
     position: relative;
     z-index: 2;
     margin: 0 auto 20px;
     animation: heroImgFloat 5s ease-in-out infinite;
-    -webkit-mask-image: radial-gradient(ellipse 85% 80% at center, black 40%, transparent 72%);
-    mask-image: radial-gradient(ellipse 85% 80% at center, black 40%, transparent 72%);
 }
 
-.hero-main-img {
-    width: 400px;
-    max-width: 95%;
-    height: auto;
-    mix-blend-mode: screen;
-    filter: brightness(1.1) saturate(1.2);
+.illus-circle {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 4px solid rgba(74,222,128,0.3);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 0 12px rgba(74,222,128,0.08);
 }
 
-.hero-grocery-basket {
-    position: absolute;
-    bottom: 80px;
-    right: 30px;
-    z-index: 1;
-    opacity: 0.15;
-    width: 200px;
-}
-
-.hero-grocery-basket img {
+.illus-circle img {
     width: 100%;
-    border-radius: 16px;
+    height: 100%;
+    object-fit: cover;
 }
 
 @keyframes heroImgFloat {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-8px); }
 }
 
 /* Glass stat cards on hero */
@@ -487,8 +479,7 @@ body {
         min-height: auto;
     }
     .login-hero-content h1 { font-size: 24px; }
-    .hero-main-img { width: 280px; }
-    .hero-grocery-basket { display: none; }
+    .illus-circle { width: 160px; height: 160px; }
     .hero-stats-row { gap: 10px; }
     .hero-stat { padding: 10px 14px; }
     .hero-stat .hs-val { font-size: 18px; }
@@ -506,7 +497,7 @@ body {
     .login-hero { padding: 30px 20px 20px; }
     .login-hero-content h1 { font-size: 20px; }
     .login-hero-content p { font-size: 11px; margin-bottom: 24px; }
-    .hero-main-img { width: 220px; }
+    .illus-circle { width: 130px; height: 130px; }
     .hero-stats-row { flex-wrap: wrap; }
     .login-card { padding: 28px 20px; }
     .login-card .logo img { width: 52px; height: 52px; }
