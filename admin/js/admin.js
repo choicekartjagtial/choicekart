@@ -48,17 +48,33 @@ function imgPath(url) {
     return '../' + url;
 }
 
+// ===== PASSWORD TOGGLE =====
+window.togglePassword = function() {
+    const input = document.getElementById('loginPassword');
+    const icon = document.getElementById('passToggleIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+};
+
 // ===== AUTH / LOGIN (Simple table-based, no Supabase Auth) =====
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorEl = document.getElementById('loginError');
+    const loginBtn = document.getElementById('loginBtn');
     errorEl.style.display = 'none';
+    loginBtn.classList.add('loading');
 
     if (!db) {
         errorEl.textContent = 'Database connection failed. Please refresh the page.';
         errorEl.style.display = 'block';
+        loginBtn.classList.remove('loading');
         return;
     }
 
@@ -94,6 +110,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     } catch (err) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';
+        loginBtn.classList.remove('loading');
     }
 });
 
