@@ -118,40 +118,39 @@ body {
     margin-bottom: 48px;
 }
 
-/* Floating grocery icons */
-.floating-groceries {
+/* Real grocery hero images */
+.hero-grocery-image {
     position: relative;
-    width: 320px;
-    height: 280px;
-    margin: 0 auto;
+    z-index: 2;
+    margin: 0 auto 20px;
+    animation: heroImgFloat 5s ease-in-out infinite;
 }
 
-.float-item {
+.hero-main-img {
+    width: 380px;
+    max-width: 90%;
+    height: auto;
+    filter: drop-shadow(0 16px 40px rgba(0,0,0,0.3));
+    border-radius: 8px;
+}
+
+.hero-grocery-basket {
     position: absolute;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
-    animation: floatItem 6s ease-in-out infinite;
+    bottom: 80px;
+    right: 30px;
+    z-index: 1;
+    opacity: 0.15;
+    width: 200px;
 }
 
-.float-item img {
+.hero-grocery-basket img {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    border-radius: 16px;
 }
 
-.float-item:nth-child(1) { top: 8%; left: 5%; width: 70px; height: 70px; animation-delay: 0s; }
-.float-item:nth-child(2) { top: 0%; left: 38%; width: 80px; height: 80px; animation-delay: 0.8s; }
-.float-item:nth-child(3) { top: 5%; right: 8%; width: 65px; height: 65px; animation-delay: 1.6s; }
-.float-item:nth-child(4) { top: 38%; left: 2%; width: 75px; height: 75px; animation-delay: 0.4s; }
-.float-item:nth-child(5) { top: 32%; left: 36%; width: 90px; height: 90px; animation-delay: 1.2s; }
-.float-item:nth-child(6) { top: 36%; right: 4%; width: 68px; height: 68px; animation-delay: 2s; }
-.float-item:nth-child(7) { bottom: 18%; left: 8%; width: 72px; height: 72px; animation-delay: 0.6s; }
-.float-item:nth-child(8) { bottom: 22%; left: 40%; width: 65px; height: 65px; animation-delay: 1.4s; }
-.float-item:nth-child(9) { bottom: 12%; right: 6%; width: 78px; height: 78px; animation-delay: 1.8s; }
-
-@keyframes floatItem {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    25% { transform: translateY(-12px) rotate(3deg); }
-    75% { transform: translateY(8px) rotate(-3deg); }
+@keyframes heroImgFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 /* Glass stat cards on hero */
@@ -486,8 +485,8 @@ body {
         min-height: auto;
     }
     .login-hero-content h1 { font-size: 24px; }
-    .floating-groceries { width: 260px; height: 200px; }
-    .float-item { font-size: 32px !important; }
+    .hero-main-img { width: 280px; }
+    .hero-grocery-basket { display: none; }
     .hero-stats-row { gap: 10px; }
     .hero-stat { padding: 10px 14px; }
     .hero-stat .hs-val { font-size: 18px; }
@@ -505,8 +504,7 @@ body {
     .login-hero { padding: 30px 20px 20px; }
     .login-hero-content h1 { font-size: 20px; }
     .login-hero-content p { font-size: 11px; margin-bottom: 24px; }
-    .floating-groceries { width: 220px; height: 160px; }
-    .float-item { font-size: 26px !important; }
+    .hero-main-img { width: 220px; }
     .hero-stats-row { flex-wrap: wrap; }
     .login-card { padding: 28px 20px; }
     .login-card .logo img { width: 52px; height: 52px; }
