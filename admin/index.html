@@ -15,73 +15,55 @@
 
 <!-- ===== LOGIN PAGE ===== -->
 <div id="loginPage" class="login-page">
-    <!-- Left Panel - Branding -->
-    <div class="login-left">
-        <div class="login-brand">
+    <!-- Full-screen grocery background -->
+    <div class="login-bg">
+        <div class="login-bg-groceries">
+            🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅 🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇 🧀 🍊 🥜
+            🛒 🏪 🛍️ 🥬 🍠 🥥 🍍 🥭 🫑 🧅 🍚 🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅
+            🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇 🧀 🍊 🥜 🛒 🏪 🛍️ 🥬 🍠 🥥 🍍 🥭 🫑
+            🍅 🧅 🍚 🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅 🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇
+        </div>
+        <div class="login-bg-overlay"></div>
+    </div>
+
+    <!-- Centered login card -->
+    <div class="login-card">
+        <div class="logo">
             <img src="/assets/images/logo.jpeg" alt="Choice Kart">
             <h1>CHOICE <span>KART</span></h1>
             <p>Smart Choice, Better Life</p>
         </div>
-        <div class="login-features">
-            <div class="login-feature">
-                <i class="fas fa-box-open"></i>
-                <span>Manage products, categories & inventory</span>
-            </div>
-            <div class="login-feature">
-                <i class="fas fa-shopping-bag"></i>
-                <span>Track orders & manage deliveries</span>
-            </div>
-            <div class="login-feature">
-                <i class="fas fa-cash-register"></i>
-                <span>In-store POS billing system</span>
-            </div>
-            <div class="login-feature">
-                <i class="fas fa-chart-line"></i>
-                <span>Sales reports & analytics</span>
-            </div>
-            <div class="login-feature">
-                <i class="fas fa-users"></i>
-                <span>Multi-staff access control</span>
-            </div>
-        </div>
-        <div class="login-groceries">
-            <span>🥕</span><span>🍎</span><span>🥛</span><span>🍞</span><span>🧅</span><span>🍌</span><span>🥚</span><span>🫘</span><span>🍅</span><span>🌶️</span><span>🥑</span><span>🧈</span>
-        </div>
-    </div>
-
-    <!-- Right Panel - Login Form -->
-    <div class="login-right">
-        <div class="login-card">
-            <div class="logo">
-                <h1><i class="fas fa-shopping-cart"></i> CHOICE KART</h1>
-                <p>Admin Dashboard</p>
-            </div>
-            <h2>Welcome Back</h2>
-            <p class="login-subtitle">Sign in to your admin dashboard</p>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <div class="input-icon-wrap">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="loginEmail" class="form-control" placeholder="admin@choicekart.com" value="admin@choicekart.com" required>
-                    </div>
+        <h2>Admin Dashboard</h2>
+        <p class="login-subtitle">Sign in to manage your store</p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="admin@choicekart.com" value="admin@choicekart.com" required>
                 </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="input-icon-wrap">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" required>
-                    </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </button>
-                <p id="loginError" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
-            </form>
-            <p class="login-footer-text">
-                <i class="fas fa-shield-alt"></i> Powered by Choice Kart &copy; 2026
-            </p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+            <p id="loginError" style="color:var(--danger);font-size:13px;margin-top:12px;text-align:center;display:none;"></p>
+        </form>
+        <div class="login-features-mini">
+            <div class="feat"><i class="fas fa-box-open"></i>Products</div>
+            <div class="feat"><i class="fas fa-shopping-bag"></i>Orders</div>
+            <div class="feat"><i class="fas fa-cash-register"></i>Billing</div>
+            <div class="feat"><i class="fas fa-chart-line"></i>Reports</div>
         </div>
+        <p class="login-footer-text">
+            <i class="fas fa-shield-alt"></i> Choice Kart by Varnika Group Pvt Ltd &copy; 2026
+        </p>
     </div>
 </div>
 
@@ -118,6 +100,10 @@
             </div>
 
             <div class="nav-section">Delivery</div>
+            <div class="nav-item" data-section="online-orders">
+                <i class="fas fa-truck"></i> Online Orders
+                <span class="badge" id="onlineOrdersBadge" style="display:none;">0</span>
+            </div>
             <div class="nav-item" data-section="delivery-boys">
                 <i class="fas fa-motorcycle"></i> Delivery Boys
             </div>
@@ -354,6 +340,48 @@
                             </thead>
                             <tbody id="ordersTable">
                                 <tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No orders yet</h4></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== ONLINE ORDERS SECTION ===== -->
+            <div class="section" id="sec-online-orders">
+                <div class="toolbar">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" id="onlineOrderSearch" placeholder="Search order #, customer...">
+                    </div>
+                    <select class="form-control" id="onlineOrderStatusFilter" style="width:auto;min-width:160px;">
+                        <option value="">All Status</option>
+                        <option value="pending" selected>Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-truck" style="color:var(--primary);"></i> Online Orders & Delivery Assignment</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Address</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Assign Delivery</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="onlineOrdersTable">
+                                <tr><td colspan="7"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
                             </tbody>
                         </table>
                     </div>
