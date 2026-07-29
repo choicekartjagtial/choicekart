@@ -15,13 +15,57 @@
 
 <!-- ===== LOGIN PAGE ===== -->
 <div id="loginPage" class="login-page">
-    <!-- Full-screen grocery background -->
+    <!-- Full-screen grocery product images background -->
     <div class="login-bg">
-        <div class="login-bg-groceries">
-            🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅 🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇 🧀 🍊 🥜
-            🛒 🏪 🛍️ 🥬 🍠 🥥 🍍 🥭 🫑 🧅 🍚 🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅
-            🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇 🧀 🍊 🥜 🛒 🏪 🛍️ 🥬 🍠 🥥 🍍 🥭 🫑
-            🍅 🧅 🍚 🥕 🍎 🥛 🍞 🧅 🍌 🥚 🫘 🍅 🌶️ 🥑 🧈 🥦 🍋 🧄 🥒 🍇
+        <div class="login-bg-grid">
+            <img src="/assets/images/downloads/Apple - Shimla, Premium.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Tomato - Hybrid, Organically Grown.jpg" alt="">
+            <img src="/assets/images/downloads/Amul Taaza Toned Fresh Milk.jpg" alt="">
+            <img src="/assets/images/downloads/India Gate Basmati Rice - Super.jpg" alt="">
+            <img src="/assets/images/downloads/Fortune Sunlite Refined Sunflower Oil.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Banana - Robusta.jpg" alt="">
+            <img src="/assets/images/products/spices/mdh-garam-masala.jpg" alt="">
+            <img src="/assets/images/downloads/Tata Tea Premium - Rich & Aromatic.jpg" alt="">
+            <img src="/assets/images/downloads/Lay's Potato Chips - Classic Salted.jpg" alt="">
+            <img src="/assets/images/downloads/Amul Pasteurised Butter.jpg" alt="">
+            <img src="/assets/images/downloads/Surf Excel Matic Top Load Detergent.jpg" alt="">
+            <img src="/assets/images/downloads/Bru Instant Coffee.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Onion - Premium Quality.jpg" alt="">
+            <img src="/assets/images/downloads/Pomegranate - Fresh & Juicy.jpg" alt="">
+            <img src="/assets/images/products/beverages/coca-cola.jpg" alt="">
+            <img src="/assets/images/downloads/Tata Salt - Iodised.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Potato - Premium.jpg" alt="">
+            <img src="/assets/images/downloads/Bournvita Health Drink.jpg" alt="">
+            <img src="/assets/images/downloads/Green Chilli - Hot & Fresh.jpg" alt="">
+            <img src="/assets/images/downloads/Vim Dishwash Liquid Gel - Lemon.jpg" alt="">
+            <img src="/assets/images/products/snacks/maggi-2-minute-noodles.jpg" alt="">
+            <img src="/assets/images/downloads/Aashirvaad Sugar.jpg" alt="">
+            <img src="/assets/images/downloads/Taj Mahal Tea.jpg" alt="">
+            <img src="/assets/images/products/flour/aashirvaad-whole-wheat-atta.jpg" alt="">
+            <img src="/assets/images/products/dairy/amul-paneer.jpg" alt="">
+            <img src="/assets/images/products/snacks/haldiram-aloo-bhujia.jpg" alt="">
+            <img src="/assets/images/products/oils/saffola-gold-oil.jpg" alt="">
+            <img src="/assets/images/products/beverages/pepsi.jpg" alt="">
+            <img src="/assets/images/downloads/Tata Sampann Toor DalArhar Dal.jpg" alt="">
+            <img src="/assets/images/products/snacks/kurkure-masala-munch.jpg" alt="">
+            <img src="/assets/images/products/dryfruits/california-almonds-badam.jpg" alt="">
+            <img src="/assets/images/products/sugar/dabur-honey.jpg" alt="">
+            <img src="/assets/images/products/beverages/sprite.jpg" alt="">
+            <img src="/assets/images/products/spices/everest-kashmirilal-chilli.jpg" alt="">
+            <img src="/assets/images/products/beverages/fanta-orange.jpg" alt="">
+            <img src="/assets/images/products/flour/rajdhani-besan-gram-flour.jpg" alt="">
+            <img src="/assets/images/products/snacks/cadbury-dairy-milk.jpg" alt="">
+            <img src="/assets/images/products/beverages/thums-up.jpg" alt="">
+            <img src="/assets/images/products/beverages/horlicks.jpg" alt="">
+            <img src="/assets/images/products/salt/tata-salt.jpg" alt="">
+            <img src="/assets/images/downloads/Apple - Shimla, Premium.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Tomato - Hybrid, Organically Grown.jpg" alt="">
+            <img src="/assets/images/downloads/Amul Taaza Toned Fresh Milk.jpg" alt="">
+            <img src="/assets/images/downloads/India Gate Basmati Rice - Super.jpg" alt="">
+            <img src="/assets/images/downloads/Fortune Sunlite Refined Sunflower Oil.jpg" alt="">
+            <img src="/assets/images/downloads/Fresh Banana - Robusta.jpg" alt="">
+            <img src="/assets/images/products/beverages/bournvita.jpg" alt="">
+            <img src="/assets/images/products/beverages/real-mango-juice.jpg" alt="">
         </div>
         <div class="login-bg-overlay"></div>
     </div>
@@ -109,6 +153,11 @@
             </div>
             <div class="nav-item" data-section="delivery-charges">
                 <i class="fas fa-route"></i> Delivery Charges
+            </div>
+
+            <div class="nav-section">Reports</div>
+            <div class="nav-item" data-section="reports">
+                <i class="fas fa-chart-bar"></i> Sales & Revenue
             </div>
 
             <div class="nav-section">Marketing</div>
@@ -418,6 +467,106 @@
             </div>
 
             <!-- ===== DELIVERY BOYS SECTION ===== -->
+            <!-- ===== REPORTS & ANALYTICS SECTION ===== -->
+            <div class="section" id="sec-reports">
+                <div class="toolbar">
+                    <select class="form-control" id="reportPeriod" style="width:auto;min-width:160px;">
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week" selected>This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <input type="date" class="form-control" id="reportDateFrom" style="width:auto;display:none;">
+                    <input type="date" class="form-control" id="reportDateTo" style="width:auto;display:none;">
+                    <button class="btn btn-primary" id="reportRefreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline" id="reportExportBtn">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
+
+                <!-- Revenue Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-rupee-sign"></i></div>
+                        <div class="stat-info">
+                            <h3 id="reportRevenue">₹0</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i class="fas fa-shopping-bag"></i></div>
+                        <div class="stat-info">
+                            <h3 id="reportOrderCount">0</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-receipt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="reportAvgOrder">₹0</h3>
+                            <p>Average Order Value</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fas fa-tags"></i></div>
+                        <div class="stat-info">
+                            <h3 id="reportDiscount">₹0</h3>
+                            <p>Total Discounts Given</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Breakdown -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                    <div class="card">
+                        <div class="card-header"><h3>Payment Methods</h3></div>
+                        <div class="card-body" id="reportPaymentMethods">
+                            <div class="loading-spinner"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Order Types</h3></div>
+                        <div class="card-body" id="reportOrderTypes">
+                            <div class="loading-spinner"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products & Daily Breakdown -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="card">
+                        <div class="card-header"><h3>Top Selling Products</h3></div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr>
+                                </thead>
+                                <tbody id="reportTopProducts">
+                                    <tr><td colspan="3"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Daily Revenue Breakdown</h3></div>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr><th>Date</th><th>Orders</th><th>Revenue</th></tr>
+                                </thead>
+                                <tbody id="reportDailyBreakdown">
+                                    <tr><td colspan="3"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="section" id="sec-delivery-boys">
                 <div class="toolbar">
                     <button class="btn btn-primary" id="addDeliveryBoyBtn">
