@@ -139,14 +139,23 @@ async function loadOnlineOrders(search = '', statusFilter = 'pending') {
                 </select>
             </td>
             <td>
-                <select class="form-control" style="padding:4px 8px;font-size:12px;width:auto;" onchange="assignDeliveryBoy('${o.id}', this.value)">
-                    <option value="">-- Assign --</option>
-                    ${dboyOptions}
-                </select>
-                ${o.delivery_boys ? `<div style="font-size:11px;color:var(--success);margin-top:4px;"><i class="fas fa-check-circle"></i> ${o.delivery_boys.name}</div>` : ''}
+                ${o.delivery_boy_id && o.delivery_boys
+                    ? `<div style="font-size:12px;margin-bottom:4px;">
+                        <span class="badge-status badge-active"><i class="fas fa-motorcycle"></i> ${o.delivery_boys.name}</span>
+                       </div>
+                       <select class="form-control" style="padding:3px 6px;font-size:11px;width:auto;" onchange="assignDeliveryBoy('${o.id}', this.value)">
+                           <option value="">Change delivery boy</option>
+                           ${dboyOptions}
+                       </select>`
+                    : `<select class="form-control" style="padding:4px 8px;font-size:12px;width:auto;" onchange="assignDeliveryBoy('${o.id}', this.value)">
+                           <option value="">-- Assign --</option>
+                           ${dboyOptions}
+                       </select>`
+                }
             </td>
-            <td>
-                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails('${o.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-outline btn-sm" onclick="viewOrderDetails('${o.id}')" title="View"><i class="fas fa-eye"></i></button>
+                <button class="btn btn-outline btn-sm" onclick="printOrderBill('${o.id}')" title="Print Bill"><i class="fas fa-print"></i></button>
             </td>
         </tr>
         `;
@@ -217,6 +226,66 @@ window.viewOrderDetails = async function(id) {
     const win = window.open('', '_blank', 'width=500,height=600');
     win.document.write(`<html><head><title>Order ${order.order_number}</title><style>body{font-family:Poppins,sans-serif;font-size:13px;}table{width:100%;border-collapse:collapse;}th,td{padding:6px 8px;text-align:left;border-bottom:1px solid #eee;}th{font-size:11px;text-transform:uppercase;color:#999;}h3{margin:0;}</style></head><body>${detailHtml}</body></html>`);
     win.document.close();
+};
+
+// ===== PRINT ORDER BILL =====
+// Generates a printable invoice for an online order
+window.printOrderBill = async function(id) {
+    const { data: order } = await db
+        .from('orders')
+        .select('*, customers(name, phone), order_items(product_name, quantity, mrp, selling_price, total)')
+        .eq('id', id).single();
+
+    if (!order) { showToast('Order not found', 'error'); return; }
+
+    const items = order.order_items || [];
+    const addr = order.delivery_address || {};
+    const addrText = order.is_pickup
+        ? 'Pickup from Store'
+        : `${addr.address || '-'}${addr.landmark ? ', ' + addr.landmark : ''} - ${addr.pincode || ''}`;
+
+    const billHtml = `
+        <html><head><style>
+            body { font-family: monospace; font-size: 12px; width: 300px; margin: 0 auto; padding: 10px; }
+            h2 { text-align: center; margin: 0 0 2px; font-size: 16px; }
+            .sub { text-align: center; font-size: 10px; color: #666; margin-bottom: 8px; }
+            hr { border: 1px dashed #000; margin: 6px 0; }
+            table { width: 100%; border-collapse: collapse; }
+            td { padding: 2px 0; font-size: 11px; }
+            .right { text-align: right; }
+            .total { font-size: 14px; font-weight: bold; border-top: 2px solid #000; padding-top: 4px; }
+            .info { font-size: 10px; color: #333; }
+        </style></head><body>
+        <h2>CHOICE KART</h2>
+        <p class="sub">Smart Choice, Better Life<br>Jagtial, Telangana | Ph: 9666991993</p>
+        <hr>
+        <p class="info"><strong>Order:</strong> ${order.order_number}<br>
+        <strong>Date:</strong> ${new Date(order.created_at).toLocaleString('en-IN')}<br>
+        <strong>Customer:</strong> ${order.customers?.name || '-'} (${order.customers?.phone || '-'})<br>
+        <strong>${order.is_pickup ? 'Pickup' : 'Deliver to'}:</strong> ${addrText}<br>
+        <strong>Payment:</strong> ${order.payment_method.toUpperCase()} (${order.payment_status})</p>
+        <hr>
+        <table>
+            <tr><td><b>Item</b></td><td class="right"><b>Qty</b></td><td class="right"><b>Amt</b></td></tr>
+            ${items.map(i => `<tr><td>${i.product_name}</td><td class="right">${i.quantity}</td><td class="right">₹${Number(i.total).toFixed(2)}</td></tr>`).join('')}
+        </table>
+        <hr>
+        <table>
+            <tr><td>Subtotal</td><td class="right">₹${Number(order.subtotal).toFixed(2)}</td></tr>
+            ${Number(order.discount) > 0 ? `<tr><td>Discount</td><td class="right">-₹${Number(order.discount).toFixed(2)}</td></tr>` : ''}
+            ${Number(order.delivery_charge) > 0 ? `<tr><td>Delivery</td><td class="right">₹${Number(order.delivery_charge).toFixed(2)}</td></tr>` : ''}
+            ${Number(order.gst_amount) > 0 ? `<tr><td>GST</td><td class="right">₹${Number(order.gst_amount).toFixed(2)}</td></tr>` : ''}
+            <tr class="total"><td><b>TOTAL</b></td><td class="right"><b>₹${Number(order.total).toFixed(2)}</b></td></tr>
+        </table>
+        <hr>
+        <p class="sub">Thank you for shopping at Choice Kart!<br>Visit us again.</p>
+        </body></html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=350,height=700');
+    printWindow.document.write(billHtml);
+    printWindow.document.close();
+    printWindow.print();
 };
 
 // ===== ONLINE ORDERS SEARCH & FILTER =====

@@ -246,9 +246,10 @@ async function requestOTP() {
         return;
     }
 
-    // MVP: Show OTP on screen (replace with SMS later)
-    showToast(`Your OTP is: ${code} (valid for 5 minutes)`, 'warning');
-    console.log(`OTP for +91${phone}: ${code}`);
+    // Show user-friendly message (OTP not shown on screen)
+    showToast('OTP sent to your mobile +91' + phone);
+    // DEV ONLY: OTP logged in console for testing (remove in production)
+    console.log(`%c[DEV] OTP for +91${phone}: ${code}`, 'color: #059669; font-weight: bold; font-size: 14px;');
 
     // Move to step 2
     otpStep = 2;

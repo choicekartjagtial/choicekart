@@ -18,6 +18,7 @@ let selectedAddress = null;   // { address, pincode, landmark, city, state }
 let isPickup = false;
 let deliveryCharge = 0;
 let razorpayKeyId = '';       // Loaded from store_settings
+let codEnabled = true;        // COD toggle from store_settings
 
 // Store coordinates (Jagtial)
 const STORE_LAT = 18.7915;
@@ -51,8 +52,8 @@ function openCheckout() {
     isPickup = false;
     deliveryCharge = 0;
 
-    // Load Razorpay key from settings
-    loadRazorpayKey();
+    // Load payment settings
+    loadPaymentSettings();
 
     // Show checkout modal
     document.getElementById('checkout-overlay').classList.add('active');
@@ -69,10 +70,16 @@ function closeCheckoutModal() {
     document.body.style.overflow = '';
 }
 
-/** Load Razorpay key from store_settings */
-async function loadRazorpayKey() {
-    const { data } = await db.from('store_settings').select('value').eq('key', 'razorpay_key_id').single();
-    razorpayKeyId = data?.value || '';
+/** Load payment settings from store_settings */
+async function loadPaymentSettings() {
+    const { data } = await db.from('store_settings').select('key, value')
+        .in('key', ['razorpay_key_id', 'cod_enabled']);
+    if (data) {
+        data.forEach(s => {
+            if (s.key === 'razorpay_key_id') razorpayKeyId = s.value || '';
+            if (s.key === 'cod_enabled') codEnabled = s.value !== 'false';
+        });
+    }
 }
 
 // ===== RENDER CHECKOUT STEPS =====
@@ -386,8 +393,15 @@ function renderPaymentStep(container) {
 
         <!-- Payment Methods -->
         <h4 style="font-size:14px;font-weight:600;margin-bottom:12px;">Select Payment Method</h4>
+    `;
 
-        <div class="checkout-payment-card selected" onclick="selectPaymentMethod('cod', this)">
+    // Determine default payment method
+    const defaultMethod = codEnabled ? 'cod' : (razorpayKeyId ? 'online' : 'cod');
+
+    // COD option (only if enabled in admin settings)
+    if (codEnabled) {
+        html += `
+        <div class="checkout-payment-card ${defaultMethod === 'cod' ? 'selected' : ''}" onclick="selectPaymentMethod('cod', this)">
             <div style="display:flex;align-items:center;gap:12px;">
                 <div style="width:44px;height:44px;background:#FEF3C7;border-radius:12px;display:flex;align-items:center;justify-content:center;">
                     <i class="fas fa-money-bill-wave" style="color:#F59E0B;font-size:18px;"></i>
@@ -397,14 +411,15 @@ function renderPaymentStep(container) {
                     <div style="font-size:12px;color:#6B7280;">Pay when your order arrives</div>
                 </div>
             </div>
-            <i class="fas fa-check-circle" style="color:#059669;font-size:18px;"></i>
+            <i class="fas fa-${defaultMethod === 'cod' ? 'check-circle' : 'circle'}" style="color:${defaultMethod === 'cod' ? '#059669' : '#D1D5DB'};font-size:18px;"></i>
         </div>
-    `;
+        `;
+    }
 
-    // Razorpay option (only if key is configured)
+    // Online payment option
     if (razorpayKeyId) {
         html += `
-            <div class="checkout-payment-card" onclick="selectPaymentMethod('online', this)">
+            <div class="checkout-payment-card ${defaultMethod === 'online' ? 'selected' : ''}" onclick="selectPaymentMethod('online', this)">
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div style="width:44px;height:44px;background:#DBEAFE;border-radius:12px;display:flex;align-items:center;justify-content:center;">
                         <i class="fas fa-credit-card" style="color:#3B82F6;font-size:18px;"></i>
@@ -414,13 +429,29 @@ function renderPaymentStep(container) {
                         <div style="font-size:12px;color:#6B7280;">UPI, Cards, Net Banking</div>
                     </div>
                 </div>
-                <i class="fas fa-circle" style="color:#D1D5DB;font-size:18px;"></i>
+                <i class="fas fa-${defaultMethod === 'online' ? 'check-circle' : 'circle'}" style="color:${defaultMethod === 'online' ? '#059669' : '#D1D5DB'};font-size:18px;"></i>
+            </div>
+        `;
+    } else {
+        // Payment gateway not configured — show Coming Soon
+        html += `
+            <div class="checkout-payment-card" style="opacity:0.6;cursor:default;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="width:44px;height:44px;background:#DBEAFE;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-credit-card" style="color:#3B82F6;font-size:18px;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600;font-size:14px;">Pay Online</div>
+                        <div style="font-size:12px;color:#6B7280;">UPI, Cards, Net Banking</div>
+                    </div>
+                </div>
+                <span style="font-size:10px;font-weight:700;color:#F59E0B;background:#FEF3C7;padding:3px 10px;border-radius:20px;">COMING SOON</span>
             </div>
         `;
     }
 
     html += `
-        <input type="hidden" id="selectedPaymentMethod" value="cod">
+        <input type="hidden" id="selectedPaymentMethod" value="${defaultMethod}">
 
         <button onclick="placeOrder()" id="placeOrderBtn"
             style="width:100%;padding:15px;background:linear-gradient(135deg,#059669,#10B981);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:20px;box-shadow:0 4px 14px rgba(5,150,105,0.3);">

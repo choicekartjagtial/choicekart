@@ -170,6 +170,9 @@
             <div class="nav-item" data-section="billing">
                 <i class="fas fa-cash-register"></i> Billing
             </div>
+            <a href="/admin/labels.html" class="nav-item" style="text-decoration:none;">
+                <i class="fas fa-tag"></i> Print Labels
+            </a>
 
             <div class="nav-section">Settings</div>
             <div class="nav-item" data-section="staff">
@@ -753,7 +756,14 @@
                                     <input type="text" class="form-control" id="setGST">
                                 </div>
                             </div>
-                            <h4 style="margin: 24px 0 16px; font-size: 15px; color: var(--text);"><i class="fas fa-credit-card" style="color:var(--primary);margin-right:8px;"></i>Payment Gateway (Razorpay)</h4>
+                            <h4 style="margin: 24px 0 16px; font-size: 15px; color: var(--text);"><i class="fas fa-money-bill-wave" style="color:var(--primary);margin-right:8px;"></i>Payment Options</h4>
+                            <div class="form-group">
+                                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                                    <input type="checkbox" id="setCODEnabled" style="width:18px;height:18px;accent-color:var(--primary);">
+                                    <span>Enable Cash on Delivery (COD)</span>
+                                </label>
+                            </div>
+                            <h4 style="margin: 16px 0 12px; font-size: 15px; color: var(--text);"><i class="fas fa-credit-card" style="color:var(--primary);margin-right:8px;"></i>Online Payment (Razorpay)</h4>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Razorpay Key ID</label>
