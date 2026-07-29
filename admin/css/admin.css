@@ -124,14 +124,16 @@ body {
     z-index: 2;
     margin: 0 auto 20px;
     animation: heroImgFloat 5s ease-in-out infinite;
+    -webkit-mask-image: radial-gradient(ellipse 85% 80% at center, black 40%, transparent 72%);
+    mask-image: radial-gradient(ellipse 85% 80% at center, black 40%, transparent 72%);
 }
 
 .hero-main-img {
-    width: 380px;
-    max-width: 90%;
+    width: 400px;
+    max-width: 95%;
     height: auto;
-    mix-blend-mode: lighten;
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.2)) brightness(1.05);
+    mix-blend-mode: screen;
+    filter: brightness(1.1) saturate(1.2);
 }
 
 .hero-grocery-basket {
