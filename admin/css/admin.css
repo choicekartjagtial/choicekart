@@ -45,39 +45,50 @@ body {
     min-height: 100vh;
     position: relative;
     overflow: hidden;
-    background: #f5f5f5;
+    background: linear-gradient(145deg, #E8F5E9 0%, #FFF8E1 30%, #E8F5E9 60%, #FFF3E0 100%);
 }
 
-/* Full-screen grocery product grid background */
+/* Scattered grocery images background */
 .login-bg {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     z-index: 0;
 }
 
-.login-bg-grid {
+.login-bg-scattered {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 4px;
-    padding: 4px;
+    top: -5%; left: -5%; right: -5%; bottom: -5%;
     z-index: 0;
 }
 
-.login-bg-grid img {
-    width: 100%;
-    height: 90px;
+.login-bg-scattered img {
+    position: absolute;
+    border-radius: 12px;
     object-fit: cover;
-    border-radius: 6px;
-    opacity: 0.7;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
 }
+
+/* Different sizes for variety */
+.login-bg-scattered img.sz-sm { width: 70px; height: 70px; }
+.login-bg-scattered img.sz-md { width: 95px; height: 95px; }
+.login-bg-scattered img.sz-lg { width: 120px; height: 120px; }
+.login-bg-scattered img.sz-xl { width: 140px; height: 140px; }
+
+/* Subtle rotations */
+.login-bg-scattered img.rot-1 { transform: rotate(-8deg); }
+.login-bg-scattered img.rot-2 { transform: rotate(5deg); }
+.login-bg-scattered img.rot-3 { transform: rotate(-12deg); }
+.login-bg-scattered img.rot-4 { transform: rotate(10deg); }
+.login-bg-scattered img.rot-5 { transform: rotate(-3deg); }
+.login-bg-scattered img.rot-6 { transform: rotate(7deg); }
 
 .login-bg-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(245,250,246,0.88) 50%, rgba(255,255,255,0.9) 100%);
+    background: radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, rgba(232,245,233,0.7) 40%, rgba(255,243,224,0.75) 70%, rgba(232,245,233,0.8) 100%);
     z-index: 1;
+    backdrop-filter: blur(1.5px);
 }
 
 /* Centered login card */
@@ -219,8 +230,9 @@ body {
     .login-card .logo img { width: 64px; height: 64px; }
     .login-card .logo h1 { font-size: 22px; }
     .login-features-mini { gap: 12px; }
-    .login-bg-grid { grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); }
-    .login-bg-grid img { height: 70px; }
+    .login-bg-scattered img.sz-lg, .login-bg-scattered img.sz-xl { width: 80px; height: 80px; }
+    .login-bg-scattered img.sz-md { width: 60px; height: 60px; }
+    .login-bg-scattered img.sz-sm { width: 50px; height: 50px; }
 }
 
 .form-group {
@@ -335,7 +347,7 @@ textarea.form-control {
 /* ===== SIDEBAR ===== */
 .sidebar {
     width: var(--sidebar-width);
-    background: #1A1D2E;
+    background: linear-gradient(180deg, #0F1923 0%, #1A1D2E 100%);
     color: white;
     position: fixed;
     top: 0;
@@ -344,77 +356,102 @@ textarea.form-control {
     z-index: 100;
     overflow-y: auto;
     transition: var(--transition);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
 }
 
 .sidebar-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.sidebar-header h2 {
-    font-size: 20px;
+.sidebar-header img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+}
+
+.sidebar-header .brand-info h2 {
+    font-size: 17px;
     font-weight: 700;
-    color: #4ADE80;
+    color: white;
+    line-height: 1.2;
 }
 
-.sidebar-header span {
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
+.sidebar-header .brand-info h2 span { color: #F37021; }
+
+.sidebar-header .brand-info small {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .sidebar-nav {
-    padding: 12px 0;
+    padding: 8px 0;
 }
 
 .nav-section {
-    padding: 8px 24px 4px;
+    padding: 16px 24px 6px;
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: rgba(255,255,255,0.3);
-    margin-top: 8px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 0;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 24px;
-    color: rgba(255,255,255,0.65);
+    padding: 9px 24px;
+    color: rgba(255,255,255,0.55);
     cursor: pointer;
     transition: var(--transition);
-    font-size: 14px;
+    font-size: 13.5px;
     border-left: 3px solid transparent;
+    margin: 1px 0;
 }
 
 .nav-item:hover {
-    background: rgba(255,255,255,0.05);
-    color: white;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.9);
 }
 
 .nav-item.active {
-    background: rgba(74,222,128,0.1);
+    background: linear-gradient(90deg, rgba(10,143,63,0.2), rgba(10,143,63,0.05));
     color: #4ADE80;
     border-left-color: #4ADE80;
+    font-weight: 500;
 }
 
 .nav-item i {
     width: 20px;
     text-align: center;
-    font-size: 16px;
+    font-size: 15px;
+    opacity: 0.8;
 }
+
+.nav-item.active i { opacity: 1; }
 
 .nav-item .badge {
     margin-left: auto;
     background: var(--danger);
     color: white;
     font-size: 10px;
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 10px;
     font-weight: 600;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -422,6 +459,7 @@ textarea.form-control {
     flex: 1;
     margin-left: var(--sidebar-width);
     min-height: 100vh;
+    background: #F4F6F9;
 }
 
 /* ===== HEADER ===== */
@@ -436,6 +474,7 @@ textarea.form-control {
     position: sticky;
     top: 0;
     z-index: 50;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .header-left {
@@ -503,6 +542,7 @@ textarea.form-control {
 .stat-card {
     background: var(--surface);
     border-radius: var(--radius-lg);
+    border: 1px solid rgba(0,0,0,0.04);
     padding: 24px;
     box-shadow: var(--shadow);
     display: flex;
@@ -541,7 +581,8 @@ textarea.form-control {
 .card {
     background: var(--surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
     overflow: hidden;
 }
 
