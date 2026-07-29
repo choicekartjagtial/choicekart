@@ -89,6 +89,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('adminDashboard').style.display = 'flex';
+        applyRolePermissions(admin.role);
         loadDashboard();
     } catch (err) {
         errorEl.textContent = err.message;
@@ -106,11 +107,57 @@ function checkSession() {
             document.getElementById('adminRole').textContent = admin.role.charAt(0).toUpperCase() + admin.role.slice(1);
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'flex';
+            applyRolePermissions(admin.role);
             loadDashboard();
         } catch (e) {
             localStorage.removeItem('ck_admin');
         }
     }
+}
+
+// Role-based access control
+// Owner: full access
+// Manager: everything except staff management and store settings
+// Staff: only billing, products (view), orders (view)
+function applyRolePermissions(role) {
+    // All nav items
+    const navItems = document.querySelectorAll('.nav-item[data-section]');
+    const navSections = document.querySelectorAll('.nav-section');
+
+    // Define which sections each role can access
+    const roleAccess = {
+        owner: ['dashboard', 'products', 'categories', 'orders', 'customers',
+                'online-orders', 'delivery-boys', 'delivery-charges',
+                'coupons', 'banners', 'billing', 'staff', 'service-areas', 'settings'],
+        manager: ['dashboard', 'products', 'categories', 'orders', 'customers',
+                  'online-orders', 'delivery-boys', 'delivery-charges',
+                  'coupons', 'banners', 'billing'],
+        staff: ['dashboard', 'products', 'orders', 'online-orders', 'billing']
+    };
+
+    const allowed = roleAccess[role] || roleAccess.staff;
+
+    navItems.forEach(item => {
+        const section = item.dataset.section;
+        if (allowed.includes(section)) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Hide nav section headers if all items under them are hidden
+    navSections.forEach(header => {
+        let next = header.nextElementSibling;
+        let anyVisible = false;
+        while (next && !next.classList.contains('nav-section')) {
+            if (next.classList.contains('nav-item') && next.style.display !== 'none') {
+                anyVisible = true;
+            }
+            next = next.nextElementSibling;
+        }
+        header.style.display = anyVisible ? '' : 'none';
+    });
 }
 
 // Check session on load
