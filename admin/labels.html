@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choice Kart - Label Printer</title>
+    <link rel="icon" type="image/jpeg" href="/assets/images/logo.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- JsBarcode library for generating barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #F4F6F9; color: #111827; min-height: 100vh; }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            background: linear-gradient(135deg, #059669, #10B981);
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .top-bar h1 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .top-bar a { color: white; font-size: 13px; opacity: 0.8; text-decoration: none; }
+        .top-bar a:hover { opacity: 1; }
+
+        /* ===== MAIN CONTAINER ===== */
+        .container { max-width: 900px; margin: 24px auto; padding: 0 20px; }
+
+        /* ===== SEARCH ===== */
+        .search-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+        .search-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #374151; }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .search-input:focus { border-color: #059669; }
+        .search-wrap { position: relative; }
+        .search-wrap i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9CA3AF; }
+
+        /* ===== PRODUCT LIST ===== */
+        .product-list { margin-top: 12px; max-height: 400px; overflow-y: auto; }
+        .product-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .product-row:hover { border-color: #A7F3D0; }
+        .product-row.selected { border-color: #059669; background: #ECFDF5; }
+        .product-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #059669; flex-shrink: 0; }
+        .product-row img { width: 44px; height: 44px; object-fit: contain; border-radius: 8px; background: #F9FAFB; border: 1px solid #E5E7EB; }
+        .product-info { flex: 1; }
+        .product-info .name { font-weight: 600; font-size: 14px; }
+        .product-info .meta { font-size: 12px; color: #6B7280; }
+        .product-info .barcode-tag { font-size: 11px; color: #059669; font-weight: 600; }
+        .qty-input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+        }
+        .qty-input:focus { border-color: #059669; outline: none; }
+
+        /* ===== ACTIONS ===== */
+        .actions {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .actions .info { font-size: 14px; color: #6B7280; }
+        .actions .info strong { color: #111827; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #059669, #10B981); color: white; box-shadow: 0 4px 12px rgba(5,150,105,0.25); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(5,150,105,0.3); }
+        .btn-outline { background: white; color: #059669; border: 2px solid #059669; }
+        .btn-outline:hover { background: #ECFDF5; }
+
+        /* ===== PREVIEW ===== */
+        .preview-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .preview-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #374151; }
+        .labels-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* ===== INDIVIDUAL LABEL (38mm x 25mm ≈ 144px x 94px at 96dpi) ===== */
+        .label {
+            width: 144px;
+            height: 94px;
+            border: 1px solid #D1D5DB;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-family: 'Arial', sans-serif;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+        .label .label-store { font-size: 6px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; }
+        .label .label-name { font-size: 7.5px; font-weight: 700; color: #111; line-height: 1.2; max-height: 18px; overflow: hidden; }
+        .label .label-details { display: flex; justify-content: space-between; align-items: baseline; }
+        .label .label-weight { font-size: 7px; color: #666; }
+        .label .label-price { font-size: 9px; font-weight: 800; color: #111; }
+        .label .label-mrp { font-size: 6px; color: #999; text-decoration: line-through; }
+        .label .label-barcode { text-align: center; }
+        .label .label-barcode svg { max-width: 100%; height: 24px; }
+        .label .label-date { font-size: 5.5px; color: #999; text-align: right; }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body { background: white; }
+            .top-bar, .search-section, .actions, .preview-section h3, .no-print { display: none !important; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .preview-section { box-shadow: none; padding: 0; border-radius: 0; }
+            .labels-preview { gap: 2mm; }
+            .label {
+                width: 38mm;
+                height: 25mm;
+                border: 0.5px solid #ccc;
+                padding: 1mm 1.5mm;
+                page-break-inside: avoid;
+            }
+            .label .label-store { font-size: 5pt; }
+            .label .label-name { font-size: 6pt; }
+            .label .label-weight { font-size: 5pt; }
+            .label .label-price { font-size: 7pt; }
+            .label .label-mrp { font-size: 5pt; }
+            .label .label-barcode svg { height: 7mm; }
+            .label .label-date { font-size: 4pt; }
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty { text-align: center; padding: 40px; color: #9CA3AF; }
+        .empty i { font-size: 36px; margin-bottom: 12px; display: block; }
+
+        @media (max-width: 600px) {
+            .actions { flex-direction: column; align-items: stretch; text-align: center; }
+            .labels-preview { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+    <h1><i class="fas fa-tag"></i> Label Printer</h1>
+    <a href="/admin/"><i class="fas fa-arrow-left"></i> Back to Admin</a>
+</div>
+
+<div class="container">
+
+    <!-- Search & Select Products -->
+    <div class="search-section">
+        <h3><i class="fas fa-search" style="color:#059669;margin-right:6px;"></i> Search & Select Products</h3>
+        <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" id="labelSearch" placeholder="Search by product name or barcode...">
+        </div>
+        <div class="product-list" id="productList">
+            <div class="empty"><i class="fas fa-barcode"></i>Search for products to print labels</div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="actions" id="actionsBar" style="display:none;">
+        <div class="info">
+            <strong id="selectedCount">0</strong> products selected &middot; <strong id="totalLabels">0</strong> labels to print
+        </div>
+        <div style="display:flex;gap:10px;">
+            <button class="btn btn-outline" onclick="previewLabels()"><i class="fas fa-eye"></i> Preview</button>
+            <button class="btn btn-primary" onclick="printLabels()"><i class="fas fa-print"></i> Print Labels</button>
+        </div>
+    </div>
+
+    <!-- Label Preview -->
+    <div class="preview-section" id="previewSection" style="display:none;">
+        <h3 class="no-print"><i class="fas fa-eye" style="color:#059669;margin-right:6px;"></i> Label Preview</h3>
+        <div class="labels-preview" id="labelsPreview"></div>
+    </div>
+
+</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+    const db = supabase.createClient(
+        'https://hxfivwycxvjifrznqpqy.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4Zml2d3ljeHZqaWZyem5xcHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTIzMDYsImV4cCI6MjEwMDgyODMwNn0.eYUsyopbxij-ETe3wNa001A1K3fiMIwIUjI-oE-4YcU'
+    );
+</script>
+<script>
+// ============================================
+// CHOICE KART — Standalone Label Printer
+// ============================================
+// 38mm x 25mm thermal labels with barcode
+// Search products → select → set quantity → preview → print
+// ============================================
+
+// Selected products: { id, name, brand, mrp, selling_price, unit, unit_value, barcode, qty }
+let selectedProducts = [];
+
+// ===== SEARCH PRODUCTS =====
+document.getElementById('labelSearch').addEventListener('input', async (e) => {
+    const query = e.target.value.trim();
+    if (query.length < 2) {
+        document.getElementById('productList').innerHTML = '<div class="empty"><i class="fas fa-barcode"></i>Type at least 2 characters to search</div>';
+        return;
+    }
+
+    const { data: products } = await db
+        .from('products')
+        .select('id, name, brand, mrp, selling_price, unit, unit_value, barcode, image_url')
+        .or(`name.ilike.%${query}%,barcode.ilike.%${query}%,brand.ilike.%${query}%`)
+        .eq('is_active', true)
+        .order('name')
+        .limit(50);
+
+    if (!products || products.length === 0) {
+        document.getElementById('productList').innerHTML = '<div class="empty"><i class="fas fa-search"></i>No products found</div>';
+        return;
+    }
+
+    document.getElementById('productList').innerHTML = products.map(p => {
+        const isSelected = selectedProducts.some(s => s.id === p.id);
+        const selItem = selectedProducts.find(s => s.id === p.id);
+        const qty = selItem ? selItem.qty : 1;
+        return `
+            <div class="product-row ${isSelected ? 'selected' : ''}" onclick="toggleProduct('${p.id}', this)">
+                <input type="checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleProduct('${p.id}', this.closest('.product-row'))">
+                ${p.image_url ? `<img src="${p.image_url.startsWith('http') ? p.image_url : '/' + p.image_url}" alt="">` : '<div style="width:44px;height:44px;background:#F3F4F6;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-box" style="color:#D1D5DB;"></i></div>'}
+                <div class="product-info">
+                    <div class="name">${p.name}</div>
+                    <div class="meta">${p.brand || ''} &middot; ${p.unit_value || 1} ${p.unit} &middot; ₹${p.selling_price} ${p.mrp > p.selling_price ? '<span style="text-decoration:line-through;color:#999;">₹' + p.mrp + '</span>' : ''}</div>
+                    <div class="barcode-tag"><i class="fas fa-barcode"></i> ${p.barcode || 'No barcode'}</div>
+                </div>
+                <input type="number" class="qty-input" value="${qty}" min="1" max="999"
+                    onclick="event.stopPropagation();"
+                    onchange="updateLabelQty('${p.id}', this.value)">
+            </div>
+        `;
+    }).join('');
+});
+
+// ===== TOGGLE PRODUCT SELECTION =====
+window.toggleProduct = function(productId, rowEl) {
+    const idx = selectedProducts.findIndex(s => s.id === productId);
+    if (idx >= 0) {
+        // Deselect
+        selectedProducts.splice(idx, 1);
+        rowEl.classList.remove('selected');
+        rowEl.querySelector('input[type="checkbox"]').checked = false;
+    } else {
+        // Select — fetch product data from the row
+        selectProductById(productId);
+        rowEl.classList.add('selected');
+        rowEl.querySelector('input[type="checkbox"]').checked = true;
+    }
+    updateActionsBar();
+};
+
+async function selectProductById(productId) {
+    const { data: p } = await db.from('products').select('*').eq('id', productId).single();
+    if (!p) return;
+    selectedProducts.push({
+        id: p.id,
+        name: p.name,
+        brand: p.brand,
+        mrp: Number(p.mrp),
+        selling_price: Number(p.selling_price),
+        unit: p.unit,
+        unit_value: p.unit_value,
+        barcode: p.barcode || ('CK' + String(selectedProducts.length + 1).padStart(5, '0')),
+        qty: 1
+    });
+    updateActionsBar();
+}
+
+// ===== UPDATE LABEL QUANTITY =====
+window.updateLabelQty = function(productId, qty) {
+    const item = selectedProducts.find(s => s.id === productId);
+    if (item) {
+        item.qty = Math.max(1, parseInt(qty) || 1);
+        updateActionsBar();
+    }
+};
+
+// ===== UPDATE ACTIONS BAR =====
+function updateActionsBar() {
+    const bar = document.getElementById('actionsBar');
+    const totalLabels = selectedProducts.reduce((t, p) => t + p.qty, 0);
+    document.getElementById('selectedCount').textContent = selectedProducts.length;
+    document.getElementById('totalLabels').textContent = totalLabels;
+    bar.style.display = selectedProducts.length > 0 ? 'flex' : 'none';
+}
+
+// ===== PREVIEW LABELS =====
+window.previewLabels = function() {
+    const preview = document.getElementById('labelsPreview');
+    const section = document.getElementById('previewSection');
+
+    if (selectedProducts.length === 0) { return; }
+
+    const today = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
+    let html = '';
+
+    selectedProducts.forEach(p => {
+        for (let i = 0; i < p.qty; i++) {
+            const canvasId = `bc-${p.id}-${i}`;
+            html += `
+                <div class="label">
+                    <div class="label-store">CHOICE KART</div>
+                    <div class="label-name">${p.name}</div>
+                    <div class="label-details">
+                        <span class="label-weight">${p.unit_value || 1} ${p.unit}</span>
+                        <span>
+                            ${p.mrp > p.selling_price ? `<span class="label-mrp">₹${p.mrp}</span> ` : ''}
+                            <span class="label-price">₹${p.selling_price}</span>
+                        </span>
+                    </div>
+                    <div class="label-barcode"><svg id="${canvasId}"></svg></div>
+                    <div class="label-date">Dt: ${today}</div>
+                </div>
+            `;
+        }
+    });
+
+    preview.innerHTML = html;
+    section.style.display = 'block';
+
+    // Generate barcodes using JsBarcode
+    setTimeout(() => {
+        selectedProducts.forEach(p => {
+            for (let i = 0; i < p.qty; i++) {
+                const el = document.getElementById(`bc-${p.id}-${i}`);
+                if (el && p.barcode) {
+                    try {
+                        JsBarcode(el, p.barcode, {
+                            format: p.barcode.startsWith('CK') ? 'CODE128' : 'EAN13',
+                            width: 1.2,
+                            height: 24,
+                            fontSize: 8,
+                            margin: 0,
+                            displayValue: true,
+                            font: 'Arial',
+                            textMargin: 1
+                        });
+                    } catch (e) {
+                        // Fallback to CODE128 if EAN13 fails (wrong length etc.)
+                        JsBarcode(el, p.barcode, {
+                            format: 'CODE128',
+                            width: 1.2,
+                            height: 24,
+                            fontSize: 8,
+                            margin: 0,
+                            displayValue: true,
+                            font: 'Arial',
+                            textMargin: 1
+                        });
+                    }
+                }
+            }
+        });
+    }, 100);
+
+    // Scroll to preview
+    section.scrollIntoView({ behavior: 'smooth' });
+};
+
+// ===== PRINT LABELS =====
+window.printLabels = function() {
+    if (selectedProducts.length === 0) return;
+
+    // Generate preview first if not already
+    previewLabels();
+
+    // Wait for barcodes to render, then print
+    setTimeout(() => window.print(), 500);
+};
+
+// ===== LOAD ALL PRODUCTS ON PAGE LOAD (show recently added) =====
+async function loadRecentProducts() {
+    const { data: products } = await db
+        .from('products')
+        .select('id, name, brand, mrp, selling_price, unit, unit_value, barcode, image_url')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+    if (!products || products.length === 0) return;
+
+    document.getElementById('productList').innerHTML =
+        '<div style="font-size:12px;color:#9CA3AF;padding:8px 12px;font-weight:600;">Recently Added Products</div>' +
+        products.map(p => `
+            <div class="product-row" onclick="toggleProduct('${p.id}', this)">
+                <input type="checkbox" onclick="event.stopPropagation(); toggleProduct('${p.id}', this.closest('.product-row'))">
+                ${p.image_url ? `<img src="${p.image_url.startsWith('http') ? p.image_url : '/' + p.image_url}" alt="">` : '<div style="width:44px;height:44px;background:#F3F4F6;border-radius:8px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-box" style="color:#D1D5DB;"></i></div>'}
+                <div class="product-info">
+                    <div class="name">${p.name}</div>
+                    <div class="meta">${p.brand || ''} &middot; ${p.unit_value || 1} ${p.unit} &middot; ₹${p.selling_price}</div>
+                    <div class="barcode-tag"><i class="fas fa-barcode"></i> ${p.barcode || 'No barcode'}</div>
+                </div>
+                <input type="number" class="qty-input" value="1" min="1" max="999"
+                    onclick="event.stopPropagation();"
+                    onchange="updateLabelQty('${p.id}', this.value)">
+            </div>
+        `).join('');
+}
+
+// Init
+loadRecentProducts();
+</script>
+</body>
+</html>

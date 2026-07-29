@@ -144,11 +144,17 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
         unit_value: parseFloat(document.getElementById('productUnitValue').value) || 1,
         low_stock_threshold: parseInt(document.getElementById('productLowStock').value) || 10,
         brand: document.getElementById('productBrand').value.trim() || null,
-        barcode: document.getElementById('productBarcode').value.trim() || null,
+        barcode: document.getElementById('productBarcode').value.trim() || null, // auto-generated below if empty on insert
         gst_percent: parseFloat(document.getElementById('productGST').value) || 0,
         image_url: document.getElementById('productImageUrl').value.trim() || null,
         is_featured: document.getElementById('productFeatured').value === 'true'
     };
+
+    // Auto-generate barcode for new products without one (CK00001 format)
+    if (!id && !data.barcode) {
+        const { count } = await db.from('products').select('id', { count: 'exact', head: true });
+        data.barcode = 'CK' + String((count || 0) + 1).padStart(5, '0');
+    }
 
     let error;
     if (id) {
@@ -158,7 +164,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
     }
 
     if (error) { showToast(error.message, 'error'); return; }
-    showToast(id ? 'Product updated!' : 'Product added!');
+    showToast(id ? 'Product updated!' : `Product added! Barcode: ${data.barcode}`);
     closeModal('productModal');
     loadProducts();
 });
