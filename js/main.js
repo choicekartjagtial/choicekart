@@ -6,6 +6,10 @@ let products = [];
 let categories = [];
 let cart = JSON.parse(localStorage.getItem('choicekart_cart')) || [];
 
+// Delivery charge settings (loaded from admin delivery_charges table)
+let _deliveryFreeAbove = 0; // 0 means no free delivery threshold set
+let _deliveryDefaultCharge = 0; // 0 means free delivery
+
 // Fallback images & category icons
 const CATEGORY_ICONS = {
     'grocery': 'fas fa-shopping-basket',
@@ -73,16 +77,23 @@ async function loadBanners() {
 }
 
 function goToBanner(index) {
-    // Get all slides (default hero + admin banners)
     const allSlides = document.querySelectorAll('.banner-slide');
     const allDots = document.querySelectorAll('.banner-dot');
 
     allSlides.forEach((s, i) => {
-        s.classList.toggle('active', i === index);
+        if (s.classList.contains('active') && i !== index) {
+            // Outgoing slide — play exit animation then hide
+            s.classList.remove('active');
+            s.classList.add('exiting');
+            setTimeout(() => s.classList.remove('exiting'), 600);
+        } else if (i === index) {
+            // Incoming slide — show with enter animation
+            s.classList.add('active');
+        } else {
+            s.classList.remove('active', 'exiting');
+        }
     });
-    allDots.forEach((d, i) => {
-        d.classList.toggle('active', i === index);
-    });
+    allDots.forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
 // ===== LOAD DATA FROM SUPABASE =====
@@ -107,6 +118,36 @@ const PRODUCTS_PER_PAGE = 20;
 let currentProductPage = 1;
 let totalProductCount = 0;
 let currentCategoryFilter = 'all';
+
+// Load delivery charge slabs from admin delivery_charges table
+// All values come from what admin sets — no hardcoded amounts
+async function loadDeliverySettings() {
+    const { data: slabs } = await db
+        .from('delivery_charges')
+        .select('*')
+        .eq('is_active', true)
+        .order('min_distance_km');
+
+    if (!slabs || slabs.length === 0) return;
+
+    // Find the highest free_above_amount across all slabs (that's the threshold)
+    // Find the applicable delivery charge (use the slab with free_above_amount)
+    for (const slab of slabs) {
+        if (slab.free_above_amount && Number(slab.free_above_amount) > 0) {
+            _deliveryFreeAbove = Number(slab.free_above_amount);
+            _deliveryDefaultCharge = Number(slab.charge);
+            break;
+        }
+    }
+
+    // If no slab has free_above_amount, use the most common non-zero charge
+    if (_deliveryDefaultCharge === 0 && _deliveryFreeAbove === 0) {
+        const nonFreeSlabs = slabs.filter(s => Number(s.charge) > 0);
+        if (nonFreeSlabs.length > 0) {
+            _deliveryDefaultCharge = Number(nonFreeSlabs[0].charge);
+        }
+    }
+}
 
 async function loadProducts() {
     // Load first page — recently modified/added first
@@ -434,13 +475,15 @@ function updateCartUI() {
     const savings = document.getElementById('cart-savings');
     if (savings) savings.textContent = '\u20B9' + getCartSavings().toLocaleString('en-IN');
 
-    // Free delivery progress bar (₹499 threshold)
-    const FREE_DELIVERY_THRESHOLD = 499;
+    // Free delivery bar — uses loaded delivery slabs from DB
     const freeBar = document.getElementById('freeDeliveryBar');
+    const freeAbove = _deliveryFreeAbove; // loaded from DB on init
+    const defaultCharge = _deliveryDefaultCharge;
+
     if (freeBar) {
-        const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - cartTotal);
-        const progress = Math.min(100, (cartTotal / FREE_DELIVERY_THRESHOLD) * 100);
-        if (remaining > 0) {
+        if (freeAbove > 0 && cartTotal < freeAbove) {
+            const remaining = freeAbove - cartTotal;
+            const progress = Math.min(100, (cartTotal / freeAbove) * 100);
             freeBar.innerHTML = `
                 <div style="background:#FEF3C7;border-radius:10px;padding:10px 14px;">
                     <div style="font-size:13px;font-weight:600;color:#92400E;margin-bottom:6px;">
@@ -450,17 +493,19 @@ function updateCartUI() {
                         <div style="background:linear-gradient(90deg,#F59E0B,#059669);height:100%;border-radius:4px;width:${progress}%;transition:width 0.3s;"></div>
                     </div>
                 </div>`;
-        } else {
+        } else if (freeAbove > 0) {
             freeBar.innerHTML = `
                 <div style="background:#ECFDF5;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
                     <i class="fas fa-check-circle" style="color:#059669;font-size:16px;"></i>
                     <span style="font-size:13px;font-weight:600;color:#065F46;">You get FREE delivery!</span>
                 </div>`;
+        } else {
+            freeBar.innerHTML = '';
         }
     }
 
-    // Update delivery text
-    const deliveryCharge = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : 30;
+    // Delivery charge — free if above threshold, else use DB charge
+    const deliveryCharge = (freeAbove > 0 && cartTotal >= freeAbove) ? 0 : defaultCharge;
     const deliveryEl = document.getElementById('cart-delivery');
     if (deliveryEl) {
         deliveryEl.textContent = deliveryCharge === 0 ? 'FREE' : '₹' + deliveryCharge;
@@ -712,7 +757,7 @@ function initScrollEffects() {
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
     // Load data from Supabase
-    await Promise.all([loadCategories(), loadProducts(), loadBanners()]);
+    await Promise.all([loadCategories(), loadProducts(), loadBanners(), loadDeliverySettings()]);
 
     updateCartUI();
     initScrollEffects();

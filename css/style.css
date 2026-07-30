@@ -420,7 +420,7 @@ button {
     overflow: hidden;
 }
 
-/* Banner Slider — smooth crossfade transitions */
+/* Banner Slider — smooth premium transitions */
 .banner-slider {
     position: relative;
     overflow: hidden;
@@ -428,10 +428,27 @@ button {
 .banner-slide {
     display: none;
     padding: 50px 0;
-    animation: bannerFadeIn 0.8s ease;
+    opacity: 0;
+    transform: scale(1.02);
 }
 .banner-slide.active {
     display: block;
+    animation: bannerEnter 1s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.banner-slide.exiting {
+    display: block;
+    animation: bannerExit 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 1;
+}
+@keyframes bannerEnter {
+    from { opacity: 0; transform: scale(1.03); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes bannerExit {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.97); }
 }
 .banner-slide.image-banner {
     padding: 0;

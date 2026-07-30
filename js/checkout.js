@@ -266,14 +266,26 @@ async function checkPincodeDelivery(pincode) {
     // Serviceable — get delivery charge from slabs
     const { data: slabs } = await db.from('delivery_charges').select('*').eq('is_active', true).order('min_distance_km');
 
-    // For MVP: use first slab (0-3KM free) for main Jagtial pincode, second slab for others
     if (slabs && slabs.length > 0) {
-        const mainPincodes = ['505327', '505326']; // Jagtial main
+        // Find applicable charge based on pincode proximity
+        const mainPincodes = ['505327', '505326']; // Jagtial main — uses first slab
         if (mainPincodes.includes(pincode)) {
             deliveryCharge = Number(slabs[0].charge);
         } else {
             deliveryCharge = slabs.length > 1 ? Number(slabs[1].charge) : Number(slabs[0].charge);
         }
+
+        // Check free_above_amount from all slabs — if cart total exceeds any, delivery is free
+        const cartTotal = getCartTotal();
+        for (const slab of slabs) {
+            if (slab.free_above_amount && Number(slab.free_above_amount) > 0 && cartTotal >= Number(slab.free_above_amount)) {
+                deliveryCharge = 0;
+                break;
+            }
+        }
+    } else {
+        // No slabs configured in admin — free delivery
+        deliveryCharge = 0;
     }
 
     const chargeText = deliveryCharge === 0 ? 'FREE Delivery!' : `Delivery charge: ₹${deliveryCharge}`;

@@ -105,9 +105,10 @@ async function loadDeliveryCharges() {
     tbody.innerHTML = data.map(d => `
         <tr>
             <td><strong>${d.min_distance_km} - ${d.max_distance_km} KM</strong></td>
-            <td>${d.charge === 0 ? '<span class="badge-status badge-active">FREE</span>' : formatCurrency(d.charge)}</td>
-            <td>${d.free_above_amount ? formatCurrency(d.free_above_amount) : '-'}</td>
-            <td>
+            <td>${Number(d.charge) === 0 ? '<span class="badge-status badge-active">FREE</span>' : formatCurrency(d.charge)}</td>
+            <td>${d.free_above_amount ? formatCurrency(d.free_above_amount) + ' <span style="font-size:11px;color:var(--text-muted);">(free above this)</span>' : '-'}</td>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-outline btn-sm" onclick="editDeliveryCharge('${d.id}')"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-danger btn-sm" onclick="deleteDeliveryCharge('${d.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
@@ -126,11 +127,27 @@ window.deleteDeliveryCharge = async function(id) {
 // ===== ADD DELIVERY CHARGE BUTTON =====
 document.getElementById('addDeliveryChargeBtn').addEventListener('click', () => {
     document.getElementById('deliveryChargeForm').reset();
+    document.getElementById('dcId').value = '';
+    document.getElementById('deliveryChargeModalTitle').textContent = 'Add Delivery Charge Slab';
     openModal('deliveryChargeModal');
 });
 
-// ===== SAVE DELIVERY CHARGE =====
+// ===== EDIT DELIVERY CHARGE =====
+window.editDeliveryCharge = async function(id) {
+    const { data: d } = await db.from('delivery_charges').select('*').eq('id', id).single();
+    if (!d) return;
+    document.getElementById('dcId').value = d.id;
+    document.getElementById('dcMinDistance').value = d.min_distance_km;
+    document.getElementById('dcMaxDistance').value = d.max_distance_km;
+    document.getElementById('dcCharge').value = d.charge;
+    document.getElementById('dcFreeAbove').value = d.free_above_amount || '';
+    document.getElementById('deliveryChargeModalTitle').textContent = 'Edit Delivery Charge Slab';
+    openModal('deliveryChargeModal');
+};
+
+// ===== SAVE DELIVERY CHARGE (insert or update) =====
 document.getElementById('saveDeliveryChargeBtn').addEventListener('click', async () => {
+    const id = document.getElementById('dcId').value;
     const minDist = parseFloat(document.getElementById('dcMinDistance').value);
     const maxDist = parseFloat(document.getElementById('dcMaxDistance').value);
     const charge = parseFloat(document.getElementById('dcCharge').value);
@@ -142,15 +159,22 @@ document.getElementById('saveDeliveryChargeBtn').addEventListener('click', async
         showToast('Max distance must be greater than min distance', 'error'); return;
     }
 
-    const { error } = await db.from('delivery_charges').insert({
+    const data = {
         min_distance_km: minDist,
         max_distance_km: maxDist,
         charge,
         free_above_amount: parseFloat(document.getElementById('dcFreeAbove').value) || null
-    });
+    };
+
+    let error;
+    if (id) {
+        ({ error } = await db.from('delivery_charges').update(data).eq('id', id));
+    } else {
+        ({ error } = await db.from('delivery_charges').insert(data));
+    }
 
     if (error) { showToast(error.message, 'error'); return; }
-    showToast('Delivery charge slab added!');
+    showToast(id ? 'Delivery charge updated!' : 'Delivery charge added!');
     closeModal('deliveryChargeModal');
     loadDeliveryCharges();
 });
