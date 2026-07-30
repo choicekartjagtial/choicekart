@@ -420,17 +420,22 @@ button {
     overflow: hidden;
 }
 
-/* Banner Slider */
-.banner-slider { position: relative; min-height: 400px; }
+/* Banner Slider — smooth crossfade transitions */
+.banner-slider {
+    position: relative;
+    overflow: hidden;
+}
 .banner-slide {
     display: none;
-    animation: bannerFade 0.6s ease;
     padding: 50px 0;
+    animation: bannerFadeIn 0.8s ease;
 }
-.banner-slide.active { display: block; }
+.banner-slide.active {
+    display: block;
+}
 .banner-slide.image-banner {
     padding: 0;
-    min-height: 300px;
+    min-height: 200px;
 }
 .banner-slide.image-banner a {
     display: block;
@@ -439,13 +444,12 @@ button {
 .banner-slide.image-banner img {
     width: 100%;
     height: auto;
-    max-height: 500px;
-    object-fit: cover;
+    max-height: 480px;
     display: block;
 }
-@keyframes bannerFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes bannerFadeIn {
+    from { opacity: 0; transform: scale(1.02); }
+    to { opacity: 1; transform: scale(1); }
 }
 .banner-dots {
     position: absolute;

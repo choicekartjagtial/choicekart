@@ -168,8 +168,11 @@
 
             <div class="nav-section">POS</div>
             <div class="nav-item" data-section="billing">
-                <i class="fas fa-cash-register"></i> Billing
+                <i class="fas fa-cash-register"></i> Quick Bill
             </div>
+            <a href="/admin/billing.html" class="nav-item" style="text-decoration:none;">
+                <i class="fas fa-cash-register"></i> POS Billing
+            </a>
             <a href="/admin/labels.html" class="nav-item" style="text-decoration:none;">
                 <i class="fas fa-tag"></i> Print Labels
             </a>
@@ -297,6 +300,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="productsPagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -393,6 +397,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="ordersPagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -435,6 +440,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="onlineOrdersPagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -464,6 +470,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="customersPagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -647,6 +654,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="couponsPagination" class="pagination"></div>
                 </div>
             </div>
 
@@ -754,6 +762,17 @@
                                 <div class="form-group">
                                     <label>GST Number</label>
                                     <input type="text" class="form-control" id="setGST">
+                                </div>
+                            </div>
+                            <h4 style="margin: 24px 0 16px; font-size: 15px; color: var(--text);"><i class="fas fa-percent" style="color:var(--primary);margin-right:8px;"></i>GST Settings</h4>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Default GST % (used if product has 0%)</label>
+                                    <input type="number" step="0.01" class="form-control" id="setDefaultGST" placeholder="e.g. 5">
+                                </div>
+                                <div class="form-group">
+                                    <label>GSTIN Number</label>
+                                    <input type="text" class="form-control" id="setGSTIN" placeholder="e.g. 36AABCT1234F1ZL">
                                 </div>
                             </div>
                             <h4 style="margin: 24px 0 16px; font-size: 15px; color: var(--text);"><i class="fas fa-money-bill-wave" style="color:var(--primary);margin-right:8px;"></i>Payment Options</h4>
@@ -983,7 +1002,15 @@
                     </div>
                     <div class="form-group">
                         <label>Barcode</label>
-                        <input type="text" class="form-control" id="productBarcode">
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" class="form-control" id="productBarcode" placeholder="Scan or auto-generate">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="generateBarcode()" title="Auto-generate barcode" style="white-space:nowrap;">
+                                <i class="fas fa-barcode"></i> Generate
+                            </button>
+                        </div>
+                        <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                            <i class="fas fa-info-circle"></i> Hold the product and scan the barcode with USB scanner to capture. For loose items, click Generate.
+                        </small>
                     </div>
                     <div class="form-group">
                         <label>GST %</label>
@@ -1255,13 +1282,14 @@
 
 <!-- Banner Modal -->
 <div class="modal-overlay" id="bannerModal">
-    <div class="modal" style="max-width:480px;">
+    <div class="modal" style="max-width:520px;">
         <div class="modal-header">
-            <h3>Add Banner</h3>
+            <h3 id="bannerModalTitle">Add Banner</h3>
             <button class="modal-close" onclick="closeModal('bannerModal')">&times;</button>
         </div>
         <div class="modal-body">
             <form id="bannerForm">
+                <input type="hidden" id="bannerId">
                 <div class="form-group">
                     <label>Banner Title *</label>
                     <input type="text" class="form-control" id="bannerTitle" required>
@@ -1273,8 +1301,19 @@
                         <p>Click to upload banner image</p>
                         <input type="file" id="bannerImageFile" accept="image/*">
                     </div>
-                    <img id="bannerImagePreview" class="image-preview" style="display:none;max-width:100%;margin-top:8px;">
+                    <img id="bannerImagePreview" class="image-preview" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;">
                     <input type="hidden" id="bannerImageUrl">
+                </div>
+                <div class="form-group">
+                    <label>Image Fit</label>
+                    <select class="form-control" id="bannerFit">
+                        <option value="contain">Contain (show full image, no crop)</option>
+                        <option value="cover">Cover (fill area, may crop edges)</option>
+                        <option value="fill">Stretch to fill</option>
+                    </select>
+                    <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+                        <i class="fas fa-info-circle"></i> Recommended: 1200x400px for best results
+                    </small>
                 </div>
                 <div class="form-group">
                     <label>Link URL (optional)</label>
@@ -1282,17 +1321,18 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Position</label>
+                        <label>Show On</label>
                         <select class="form-control" id="bannerPosition">
-                            <option value="home">Home</option>
-                            <option value="category">Category</option>
-                            <option value="offer">Offer</option>
-                            <option value="popup">Popup</option>
+                            <option value="home">Home Page (hero slider)</option>
+                            <option value="category">Category Pages</option>
+                            <option value="offer">Offers Section</option>
+                            <option value="popup">Popup on Visit</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Sort Order</label>
                         <input type="number" class="form-control" id="bannerSortOrder" value="0">
+                        <small style="color:var(--text-muted);font-size:11px;">Lower = shows first</small>
                     </div>
                 </div>
             </form>

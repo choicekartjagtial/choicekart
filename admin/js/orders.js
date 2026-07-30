@@ -5,29 +5,144 @@
 // online orders with delivery assignment, and order detail view.
 // Depends on: db (supabase-config.js), utils.js
 
+let ordersCurrentPage = 1;
+let onlineOrdersCurrentPage = 1;
+let _ordersFiltersInjected = false;
+let _onlineOrdersFiltersInjected = false;
+
+function _injectOrderFilters() {
+    if (_ordersFiltersInjected) return;
+    _ordersFiltersInjected = true;
+    const toolbar = document.querySelector('#sec-orders .toolbar');
+    if (!toolbar) return;
+
+    const filterRow = document.createElement('div');
+    filterRow.className = 'filter-row';
+    filterRow.innerHTML = `
+        <input type="date" id="orderDateFrom" title="From date">
+        <input type="date" id="orderDateTo" title="To date">
+        <select id="orderPaymentFilter" style="width:auto;">
+            <option value="">All Payments</option>
+            <option value="cod">COD</option>
+            <option value="online">Online</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+        </select>
+        <input type="number" id="orderAmountMin" placeholder="Min Amount" style="width:110px;">
+        <input type="number" id="orderAmountMax" placeholder="Max Amount" style="width:110px;">
+    `;
+    toolbar.insertAdjacentElement('afterend', filterRow);
+
+    ['orderDateFrom','orderDateTo','orderAmountMin','orderAmountMax'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => { ordersCurrentPage = 1; _triggerOrderLoad(); });
+    });
+    document.getElementById('orderPaymentFilter').addEventListener('change', () => { ordersCurrentPage = 1; _triggerOrderLoad(); });
+}
+
+function _triggerOrderLoad() {
+    loadOrders(
+        document.getElementById('orderSearch').value,
+        document.getElementById('orderStatusFilter').value,
+        ordersCurrentPage
+    );
+}
+
+function _injectOnlineOrderFilters() {
+    if (_onlineOrdersFiltersInjected) return;
+    _onlineOrdersFiltersInjected = true;
+    const toolbar = document.querySelector('#sec-online-orders .toolbar');
+    if (!toolbar) return;
+
+    const filterRow = document.createElement('div');
+    filterRow.className = 'filter-row';
+    filterRow.innerHTML = `
+        <input type="date" id="onlineOrderDateFrom" title="From date">
+        <input type="date" id="onlineOrderDateTo" title="To date">
+        <select id="onlineOrderPaymentFilter" style="width:auto;">
+            <option value="">All Payments</option>
+            <option value="cod">COD</option>
+            <option value="online">Online</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+        </select>
+        <input type="number" id="onlineOrderAmountMin" placeholder="Min Amount" style="width:110px;">
+        <input type="number" id="onlineOrderAmountMax" placeholder="Max Amount" style="width:110px;">
+    `;
+    toolbar.insertAdjacentElement('afterend', filterRow);
+
+    ['onlineOrderDateFrom','onlineOrderDateTo','onlineOrderAmountMin','onlineOrderAmountMax'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => { onlineOrdersCurrentPage = 1; _triggerOnlineOrderLoad(); });
+    });
+    document.getElementById('onlineOrderPaymentFilter').addEventListener('change', () => { onlineOrdersCurrentPage = 1; _triggerOnlineOrderLoad(); });
+}
+
+function _triggerOnlineOrderLoad() {
+    loadOnlineOrders(
+        document.getElementById('onlineOrderSearch').value,
+        document.getElementById('onlineOrderStatusFilter').value,
+        onlineOrdersCurrentPage
+    );
+}
+
 // ===== LOAD ORDERS (All orders) =====
-async function loadOrders(search = '', statusFilter = '') {
+async function loadOrders(search = '', statusFilter = '', page = 1) {
     if (!db) return;
+    _injectOrderFilters();
+    ordersCurrentPage = page;
+
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
     let query = db
         .from('orders')
-        .select('*, customers(name, phone), order_items(id)')
+        .select('*, customers(name, phone), order_items(id)', { count: 'exact' })
         .order('created_at', { ascending: false });
 
     if (statusFilter) query = query.eq('status', statusFilter);
     if (search) query = query.or(`order_number.ilike.%${search}%`);
 
-    const { data: orders, error } = await query;
+    // Advanced filters
+    const dateFrom = document.getElementById('orderDateFrom')?.value;
+    const dateTo = document.getElementById('orderDateTo')?.value;
+    const paymentFilter = document.getElementById('orderPaymentFilter')?.value;
+    const amountMin = document.getElementById('orderAmountMin')?.value;
+    const amountMax = document.getElementById('orderAmountMax')?.value;
+
+    if (dateFrom) query = query.gte('created_at', dateFrom + 'T00:00:00');
+    if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59');
+    if (paymentFilter) query = query.eq('payment_method', paymentFilter);
+    if (amountMin) query = query.gte('total', parseFloat(amountMin));
+    if (amountMax) query = query.lte('total', parseFloat(amountMax));
+
+    query = query.range(from, to);
+
+    const { data: orders, error, count } = await query;
     if (error) { showToast(error.message, 'error'); return; }
 
     const tbody = document.getElementById('ordersTable');
     if (!orders || orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No orders found</h4></div></td></tr>';
+        renderPagination('ordersPagination', 0, page, PAGE_SIZE, () => {});
         return;
     }
 
+    // Bulk actions bar (owner only)
+    renderBulkActions('ordersBulk', 'ordersTable', {
+        onDelete: async () => {
+            const ids = getSelectedIds('ordersTable');
+            if (!ids.length) { showToast('Select orders first', 'error'); return; }
+            if (!await toastConfirm(`Delete ${ids.length} order(s)? This cannot be undone.`)) return;
+            for (const id of ids) { await db.from('order_items').delete().eq('order_id', id); await db.from('orders').delete().eq('id', id); }
+            showToast(`${ids.length} order(s) deleted`);
+            _triggerOrderLoad();
+        },
+        onExportCSV: () => exportOrdersData('csv', 'ordersTable'),
+        onExportExcel: () => exportOrdersData('excel', 'ordersTable')
+    });
+
     tbody.innerHTML = orders.map(o => `
         <tr>
+            ${isOwner() ? `<td><input type="checkbox" class="row-checkbox" value="${o.id}" onchange="updateBulkCount('ordersTable')" style="width:16px;height:16px;accent-color:var(--primary);"></td>` : ''}
             <td><strong>${o.order_number}</strong></td>
             <td>${o.customers?.name || o.customers?.phone || '-'}</td>
             <td>${o.order_items?.length || 0} items</td>
@@ -48,6 +163,14 @@ async function loadOrders(search = '', statusFilter = '') {
             </td>
         </tr>
     `).join('');
+
+    renderPagination('ordersPagination', count, page, PAGE_SIZE, (newPage) => {
+        loadOrders(
+            document.getElementById('orderSearch').value,
+            document.getElementById('orderStatusFilter').value,
+            newPage
+        );
+    });
 }
 
 // ===== UPDATE ORDER STATUS =====
@@ -70,27 +193,49 @@ window.viewOrder = async function(id) {
 
 // ===== ORDER SEARCH & FILTER =====
 document.getElementById('orderSearch').addEventListener('input', (e) => {
-    loadOrders(e.target.value, document.getElementById('orderStatusFilter').value);
+    ordersCurrentPage = 1;
+    loadOrders(e.target.value, document.getElementById('orderStatusFilter').value, 1);
 });
 document.getElementById('orderStatusFilter').addEventListener('change', (e) => {
-    loadOrders(document.getElementById('orderSearch').value, e.target.value);
+    ordersCurrentPage = 1;
+    loadOrders(document.getElementById('orderSearch').value, e.target.value, 1);
 });
 
 // ===== LOAD ONLINE ORDERS =====
 // Shows only non-POS orders with delivery assignment capability
-async function loadOnlineOrders(search = '', statusFilter = 'pending') {
+async function loadOnlineOrders(search = '', statusFilter = 'pending', page = 1) {
     if (!db) return;
+    _injectOnlineOrderFilters();
+    onlineOrdersCurrentPage = page;
+
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
     let query = db
         .from('orders')
-        .select('*, customers(name, phone), delivery_boys(name, phone)')
+        .select('*, customers(name, phone), delivery_boys(name, phone)', { count: 'exact' })
         .neq('notes', 'In-store POS billing')
         .order('created_at', { ascending: false });
 
     if (statusFilter) query = query.eq('status', statusFilter);
     if (search) query = query.or(`order_number.ilike.%${search}%`);
 
-    const { data: orders, error } = await query;
+    // Advanced filters
+    const dateFrom = document.getElementById('onlineOrderDateFrom')?.value;
+    const dateTo = document.getElementById('onlineOrderDateTo')?.value;
+    const paymentFilter = document.getElementById('onlineOrderPaymentFilter')?.value;
+    const amountMin = document.getElementById('onlineOrderAmountMin')?.value;
+    const amountMax = document.getElementById('onlineOrderAmountMax')?.value;
+
+    if (dateFrom) query = query.gte('created_at', dateFrom + 'T00:00:00');
+    if (dateTo) query = query.lte('created_at', dateTo + 'T23:59:59');
+    if (paymentFilter) query = query.eq('payment_method', paymentFilter);
+    if (amountMin) query = query.gte('total', parseFloat(amountMin));
+    if (amountMax) query = query.lte('total', parseFloat(amountMax));
+
+    query = query.range(from, to);
+
+    const { data: orders, error, count } = await query;
     if (error) { showToast(error.message, 'error'); return; }
 
     // Load available delivery boys for the assignment dropdown
@@ -116,14 +261,30 @@ async function loadOnlineOrders(search = '', statusFilter = 'pending') {
     const tbody = document.getElementById('onlineOrdersTable');
     if (!orders || orders.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><h4>No online orders found</h4></div></td></tr>';
+        renderPagination('onlineOrdersPagination', 0, page, PAGE_SIZE, () => {});
         return;
     }
+
+    // Bulk actions bar (owner only)
+    renderBulkActions('onlineOrdersBulk', 'onlineOrdersTable', {
+        onDelete: async () => {
+            const ids = getSelectedIds('onlineOrdersTable');
+            if (!ids.length) { showToast('Select orders first', 'error'); return; }
+            if (!await toastConfirm(`Delete ${ids.length} order(s)?`)) return;
+            for (const id of ids) { await db.from('order_items').delete().eq('order_id', id); await db.from('orders').delete().eq('id', id); }
+            showToast(`${ids.length} order(s) deleted`);
+            _triggerOnlineOrderLoad();
+        },
+        onExportCSV: () => exportOrdersData('csv', 'onlineOrdersTable'),
+        onExportExcel: () => exportOrdersData('excel', 'onlineOrdersTable')
+    });
 
     tbody.innerHTML = orders.map(o => {
         const addr = o.delivery_address || {};
         const addrText = addr.address || addr.area || addr.type || '-';
         return `
         <tr>
+            ${isOwner() ? `<td><input type="checkbox" class="row-checkbox" value="${o.id}" onchange="updateBulkCount('onlineOrdersTable')" style="width:16px;height:16px;accent-color:var(--primary);"></td>` : ''}
             <td><strong>${o.order_number}</strong><br><span style="font-size:11px;color:var(--text-muted);">${formatDate(o.created_at)}</span></td>
             <td>
                 <strong>${o.customers?.name || '-'}</strong><br>
@@ -160,6 +321,14 @@ async function loadOnlineOrders(search = '', statusFilter = 'pending') {
         </tr>
         `;
     }).join('');
+
+    renderPagination('onlineOrdersPagination', count, page, PAGE_SIZE, (newPage) => {
+        loadOnlineOrders(
+            document.getElementById('onlineOrderSearch').value,
+            document.getElementById('onlineOrderStatusFilter').value,
+            newPage
+        );
+    });
 }
 
 // ===== UPDATE ONLINE ORDER STATUS =====
@@ -173,7 +342,8 @@ window.updateOnlineOrderStatus = async function(id, status) {
     showToast(`Order ${status}!`);
     loadOnlineOrders(
         document.getElementById('onlineOrderSearch').value,
-        document.getElementById('onlineOrderStatusFilter').value
+        document.getElementById('onlineOrderStatusFilter').value,
+        onlineOrdersCurrentPage
     );
 };
 
@@ -195,7 +365,8 @@ window.assignDeliveryBoy = async function(orderId, deliveryBoyId) {
     showToast('Delivery boy assigned! Status → Out for Delivery');
     loadOnlineOrders(
         document.getElementById('onlineOrderSearch').value,
-        document.getElementById('onlineOrderStatusFilter').value
+        document.getElementById('onlineOrderStatusFilter').value,
+        onlineOrdersCurrentPage
     );
 };
 
@@ -290,8 +461,43 @@ window.printOrderBill = async function(id) {
 
 // ===== ONLINE ORDERS SEARCH & FILTER =====
 document.getElementById('onlineOrderSearch').addEventListener('input', (e) => {
-    loadOnlineOrders(e.target.value, document.getElementById('onlineOrderStatusFilter').value);
+    onlineOrdersCurrentPage = 1;
+    loadOnlineOrders(e.target.value, document.getElementById('onlineOrderStatusFilter').value, 1);
 });
 document.getElementById('onlineOrderStatusFilter').addEventListener('change', (e) => {
-    loadOnlineOrders(document.getElementById('onlineOrderSearch').value, e.target.value);
+    onlineOrdersCurrentPage = 1;
+    loadOnlineOrders(document.getElementById('onlineOrderSearch').value, e.target.value, 1);
 });
+
+// ===== EXPORT ORDERS DATA (shared by orders + online orders) =====
+async function exportOrdersData(format, tableId) {
+    const ids = getSelectedIds(tableId);
+    if (!ids.length) { showToast('Select orders to export', 'error'); return; }
+
+    const { data: orders } = await db.from('orders')
+        .select('order_number, total, subtotal, discount, gst_amount, payment_method, payment_status, is_pickup, notes, created_at, customers(name, phone), order_items(product_name, quantity, selling_price, total)')
+        .in('id', ids);
+
+    if (!orders || !orders.length) { showToast('No data found', 'error'); return; }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    if (format === 'csv') {
+        const csv = 'Order #,Customer,Phone,Total,Discount,GST,Payment,Status,Type,Date\n' +
+            orders.map(o => `${o.order_number},${o.customers?.name || '-'},${o.customers?.phone || '-'},${o.total},${o.discount || 0},${o.gst_amount || 0},${o.payment_method},${o.payment_status},${o.notes === 'In-store POS billing' ? 'POS' : 'Online'},${new Date(o.created_at).toLocaleString('en-IN')}`).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `orders-${today}.csv`; a.click();
+        showToast(`Exported ${orders.length} orders as CSV`);
+    } else {
+        let html = `<html><head><meta charset="UTF-8"><style>td,th{border:1px solid #ccc;padding:4px 8px;font-size:11px;}th{background:#059669;color:white;}</style></head><body>
+        <h2>Choice Kart Orders (${today})</h2><table>
+        <tr><th>Order #</th><th>Customer</th><th>Phone</th><th>Total</th><th>Discount</th><th>GST</th><th>Payment</th><th>Date</th></tr>`;
+        orders.forEach(o => {
+            html += `<tr><td>${o.order_number}</td><td>${o.customers?.name || '-'}</td><td>${o.customers?.phone || '-'}</td><td>${o.total}</td><td>${o.discount || 0}</td><td>${o.gst_amount || 0}</td><td>${o.payment_method}</td><td>${new Date(o.created_at).toLocaleString('en-IN')}</td></tr>`;
+        });
+        html += '</table></body></html>';
+        const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `orders-${today}.xls`; a.click();
+        showToast(`Exported ${orders.length} orders as Excel`);
+    }
+}

@@ -94,7 +94,7 @@ window.editStaff = async function(id) {
 
 // ===== DELETE STAFF =====
 window.deleteStaff = async function(id) {
-    if (!confirm('Delete this staff member? They will lose admin access.')) return;
+    if (!await toastConfirm('Delete this staff member? They will lose admin access.')) return;
     const { error } = await db.from('admin_users').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Staff removed!');

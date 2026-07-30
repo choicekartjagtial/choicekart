@@ -8,18 +8,28 @@
 // Shared caches used by products and other modules
 let categoriesCache = [];
 let subcategoriesCache = [];
+let categoriesCurrentPage = 1;
+let subcategoriesCurrentPage = 1;
 
 // ===== LOAD CATEGORIES =====
-async function loadCategories() {
+async function loadCategories(page = 1) {
     if (!db) return;
+    categoriesCurrentPage = page;
 
-    const { data: categories, error } = await db
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data: categories, error, count } = await db
         .from('categories')
-        .select('*')
-        .order('sort_order');
+        .select('*', { count: 'exact' })
+        .order('sort_order')
+        .range(from, to);
 
     if (error) { showToast(error.message, 'error'); return; }
-    categoriesCache = categories || [];
+
+    // Always keep full cache for dropdowns (separate query without pagination)
+    const { data: allCategories } = await db.from('categories').select('*').order('sort_order');
+    categoriesCache = allCategories || [];
 
     // Update dropdown selects in product form and subcategory form
     updateCategoryDropdowns();
@@ -58,6 +68,20 @@ async function loadCategories() {
             </tr>
         `;
     }).join('');
+
+    // Only show pagination if more than PAGE_SIZE items
+    if (count > PAGE_SIZE) {
+        // Ensure pagination container exists
+        let paginationEl = document.getElementById('categoriesPagination');
+        if (!paginationEl) {
+            const tableWrapper = tbody.closest('.table-wrapper') || tbody.closest('.card');
+            paginationEl = document.createElement('div');
+            paginationEl.id = 'categoriesPagination';
+            paginationEl.className = 'pagination';
+            tableWrapper.insertAdjacentElement('afterend', paginationEl);
+        }
+        renderPagination('categoriesPagination', count, page, PAGE_SIZE, (newPage) => { loadCategories(newPage); });
+    }
 }
 
 /**
@@ -92,7 +116,7 @@ document.getElementById('saveCategoryBtn').addEventListener('click', async () =>
     if (!name) { showToast('Category name is required', 'error'); return; }
 
     const data = {
-        name,
+        name: toTitleCase(name),
         name_te: document.getElementById('categoryNameTe').value.trim() || null,
         slug: slugify(name),
         image_url: document.getElementById('categoryImageUrl').value.trim() || null,
@@ -109,7 +133,7 @@ document.getElementById('saveCategoryBtn').addEventListener('click', async () =>
     if (error) { showToast(error.message, 'error'); return; }
     showToast(id ? 'Category updated!' : 'Category added!');
     closeModal('categoryModal');
-    loadCategories();
+    loadCategories(categoriesCurrentPage);
 });
 
 // ===== EDIT CATEGORY =====
@@ -128,21 +152,26 @@ window.editCategory = async function(id) {
 
 // ===== DELETE CATEGORY =====
 window.deleteCategory = async function(id) {
-    if (!confirm('Delete this category? All subcategories under it will also be deleted.')) return;
+    if (!await toastConfirm('Delete this category? All subcategories will also be deleted.')) return;
     const { error } = await db.from('categories').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Category deleted!');
-    loadCategories();
+    loadCategories(categoriesCurrentPage);
 };
 
 // ===== LOAD SUBCATEGORIES =====
-async function loadSubcategories() {
+async function loadSubcategories(page = 1) {
     if (!db) return;
+    subcategoriesCurrentPage = page;
 
-    const { data: subcategories, error } = await db
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data: subcategories, error, count } = await db
         .from('subcategories')
-        .select('*, categories(name)')
-        .order('sort_order');
+        .select('*, categories(name)', { count: 'exact' })
+        .order('sort_order')
+        .range(from, to);
 
     if (error) { showToast(error.message, 'error'); return; }
     subcategoriesCache = subcategories || [];
@@ -164,6 +193,19 @@ async function loadSubcategories() {
             </td>
         </tr>
     `).join('');
+
+    // Only show pagination if more than PAGE_SIZE items
+    if (count > PAGE_SIZE) {
+        let paginationEl = document.getElementById('subcategoriesPagination');
+        if (!paginationEl) {
+            const tableWrapper = tbody.closest('.table-wrapper') || tbody.closest('.card');
+            paginationEl = document.createElement('div');
+            paginationEl.id = 'subcategoriesPagination';
+            paginationEl.className = 'pagination';
+            tableWrapper.insertAdjacentElement('afterend', paginationEl);
+        }
+        renderPagination('subcategoriesPagination', count, page, PAGE_SIZE, (newPage) => { loadSubcategories(newPage); });
+    }
 }
 
 // ===== ADD SUBCATEGORY BUTTON =====
@@ -183,7 +225,7 @@ document.getElementById('saveSubcategoryBtn').addEventListener('click', async ()
     if (!name || !parentId) { showToast('Name and parent category are required', 'error'); return; }
 
     const data = {
-        name,
+        name: toTitleCase(name),
         name_te: document.getElementById('subcategoryNameTe').value.trim() || null,
         category_id: parentId,
         slug: slugify(name),
@@ -200,8 +242,8 @@ document.getElementById('saveSubcategoryBtn').addEventListener('click', async ()
     if (error) { showToast(error.message, 'error'); return; }
     showToast(id ? 'Subcategory updated!' : 'Subcategory added!');
     closeModal('subcategoryModal');
-    loadSubcategories();
-    loadCategories(); // Refresh category counts
+    loadSubcategories(subcategoriesCurrentPage);
+    loadCategories(categoriesCurrentPage); // Refresh category counts
 });
 
 // ===== EDIT SUBCATEGORY =====
@@ -219,9 +261,9 @@ window.editSubcategory = async function(id) {
 
 // ===== DELETE SUBCATEGORY =====
 window.deleteSubcategory = async function(id) {
-    if (!confirm('Delete this subcategory?')) return;
+    if (!await toastConfirm('Delete this subcategory?')) return;
     const { error } = await db.from('subcategories').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Subcategory deleted!');
-    loadSubcategories();
+    loadSubcategories(subcategoriesCurrentPage);
 };

@@ -82,7 +82,7 @@ window.editDeliveryBoy = async function(id) {
 
 // ===== DELETE DELIVERY BOY =====
 window.deleteDeliveryBoy = async function(id) {
-    if (!confirm('Delete this delivery boy?')) return;
+    if (!await toastConfirm('Delete this delivery boy?')) return;
     const { error } = await db.from('delivery_boys').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Delivery boy deleted!');
@@ -116,7 +116,7 @@ async function loadDeliveryCharges() {
 
 // ===== DELETE DELIVERY CHARGE =====
 window.deleteDeliveryCharge = async function(id) {
-    if (!confirm('Delete this delivery charge slab?')) return;
+    if (!await toastConfirm('Delete this delivery charge slab?')) return;
     const { error } = await db.from('delivery_charges').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Deleted!');

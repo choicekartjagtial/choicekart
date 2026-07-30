@@ -968,6 +968,7 @@ table tbody tr:hover {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    margin: auto;
 }
 
 .modal-header {
@@ -976,11 +977,19 @@ table tbody tr:hover {
     justify-content: space-between;
     padding: 18px 24px;
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 2;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .modal-header h3 {
     font-size: 17px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .modal-close {
@@ -990,6 +999,7 @@ table tbody tr:hover {
     cursor: pointer;
     color: var(--text-muted);
     padding: 4px;
+    flex-shrink: 0;
 }
 
 .modal-body {
@@ -1002,13 +1012,52 @@ table tbody tr:hover {
     gap: 12px;
     padding: 16px 24px;
     border-top: 1px solid var(--border);
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 /* ===== FORM GRID ===== */
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-family: inherit;
+    transition: var(--transition);
+    background: var(--surface);
+    color: var(--text);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    margin-bottom: 4px;
+}
+
+.form-row .form-group {
+    min-width: 0;
+    margin-bottom: 12px;
 }
 
 .form-row.three {
@@ -1136,37 +1185,44 @@ table tbody tr:hover {
 .stock-bar-fill.medium { background: var(--warning); }
 .stock-bar-fill.low { background: var(--danger); }
 
-/* ===== TOAST NOTIFICATIONS ===== */
+/* ===== TOAST NOTIFICATIONS (centered on screen) ===== */
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 300;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 8px;
+    width: 90%;
+    max-width: 400px;
+    pointer-events: none;
 }
 
 .toast {
-    padding: 12px 20px;
-    border-radius: var(--radius);
+    padding: 14px 24px;
+    border-radius: 12px;
     color: white;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: var(--shadow-md);
-    animation: slideIn 0.3s ease;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    animation: toastIn 0.35s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    width: 100%;
+    pointer-events: auto;
 }
 
 .toast.success { background: var(--success); }
 .toast.error { background: var(--danger); }
 .toast.warning { background: var(--warning); }
 
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+@keyframes toastIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* ===== EMPTY STATE ===== */
@@ -1208,6 +1264,18 @@ table tbody tr:hover {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* ===== PAGINATION ===== */
+.pagination { display:flex; align-items:center; justify-content:center; gap:8px; padding:16px; }
+.pagination button { padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:white; font-size:13px; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.pagination button:hover { border-color:var(--primary); color:var(--primary); }
+.pagination button.active { background:var(--primary); color:white; border-color:var(--primary); }
+.pagination button:disabled { opacity:0.4; cursor:default; }
+.pagination button:disabled:hover { border-color:var(--border); color:inherit; }
+.pagination .page-info { font-size:13px; color:var(--text-muted); }
+.filter-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.filter-row input, .filter-row select { padding:8px 12px; border:1.5px solid var(--border); border-radius:var(--radius); font-size:13px; font-family:inherit; }
+.filter-row input:focus, .filter-row select:focus { border-color:var(--primary); outline:none; }
 
 /* ===== SECTIONS (hide/show) ===== */
 .section { display: none; }
@@ -1251,6 +1319,20 @@ table tbody tr:hover {
         flex-direction: column;
         align-items: stretch;
     }
+
+    /* Modal full-screen on mobile */
+    .modal-overlay { padding: 10px; }
+    .modal {
+        max-height: 95vh;
+        border-radius: 16px;
+    }
+    .modal-body { padding: 16px; }
+    .modal-header { padding: 14px 16px; }
+    .modal-footer { padding: 12px 16px; }
+
+    /* Filter row stacks on mobile */
+    .filter-row { flex-direction: column; }
+    .filter-row input, .filter-row select { width: 100% !important; }
 }
 
 @media (max-width: 480px) {
@@ -1261,4 +1343,8 @@ table tbody tr:hover {
     .login-card {
         padding: 32px 24px;
     }
+
+    /* Toasts slightly smaller on small screens */
+    .toast-container { max-width: 92%; }
+    .toast { font-size: 13px; padding: 12px 16px; }
 }

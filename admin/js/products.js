@@ -5,19 +5,87 @@
 // Uses categoriesCache from categories.js for dropdown population.
 // Depends on: db (supabase-config.js), utils.js, categories.js
 
+let productsCurrentPage = 1;
+let _productsFiltersInjected = false;
+
+function _injectProductFilters() {
+    if (_productsFiltersInjected) return;
+    _productsFiltersInjected = true;
+    const toolbar = document.querySelector('#sec-products .toolbar');
+    if (!toolbar) return;
+
+    // Insert filter row after the toolbar
+    const filterRow = document.createElement('div');
+    filterRow.className = 'filter-row';
+    filterRow.id = 'productFilters';
+    filterRow.innerHTML = `
+        <input type="number" id="productPriceMin" placeholder="Min Price" style="width:100px;">
+        <input type="number" id="productPriceMax" placeholder="Max Price" style="width:100px;">
+        <select id="productStockFilter" style="width:auto;">
+            <option value="">All Stock</option>
+            <option value="in_stock">In Stock</option>
+            <option value="low_stock">Low Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+        </select>
+        <input type="text" id="productBrandFilter" placeholder="Brand" style="width:120px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="productFeaturedFilter" style="width:16px;height:16px;accent-color:var(--primary);">
+            Featured only
+        </label>
+    `;
+    toolbar.insertAdjacentElement('afterend', filterRow);
+
+    // Attach filter event listeners
+    ['productPriceMin','productPriceMax','productBrandFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => { productsCurrentPage = 1; _triggerProductLoad(); });
+    });
+    document.getElementById('productStockFilter').addEventListener('change', () => { productsCurrentPage = 1; _triggerProductLoad(); });
+    document.getElementById('productFeaturedFilter').addEventListener('change', () => { productsCurrentPage = 1; _triggerProductLoad(); });
+}
+
+function _triggerProductLoad() {
+    loadProducts(
+        document.getElementById('productSearch').value,
+        document.getElementById('productCategoryFilter').value,
+        productsCurrentPage
+    );
+}
+
 // ===== LOAD PRODUCTS =====
-async function loadProducts(search = '', categoryFilter = '') {
+async function loadProducts(search = '', categoryFilter = '', page = 1) {
     if (!db) return;
+    _injectProductFilters();
+    productsCurrentPage = page;
+
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
     let query = db
         .from('products')
-        .select('*, categories(name)')
+        .select('*, categories(name)', { count: 'exact' })
         .order('created_at', { ascending: false });
 
     if (categoryFilter) query = query.eq('category_id', categoryFilter);
     if (search) query = query.ilike('name', `%${search}%`);
 
-    const { data: products, error } = await query;
+    // Advanced filters
+    const priceMin = document.getElementById('productPriceMin')?.value;
+    const priceMax = document.getElementById('productPriceMax')?.value;
+    const stockFilter = document.getElementById('productStockFilter')?.value;
+    const brandFilter = document.getElementById('productBrandFilter')?.value?.trim();
+    const featuredOnly = document.getElementById('productFeaturedFilter')?.checked;
+
+    if (priceMin) query = query.gte('selling_price', parseFloat(priceMin));
+    if (priceMax) query = query.lte('selling_price', parseFloat(priceMax));
+    if (stockFilter === 'out_of_stock') query = query.lte('stock_qty', 0);
+    if (stockFilter === 'low_stock') query = query.gt('stock_qty', 0).lte('stock_qty', 10);
+    if (stockFilter === 'in_stock') query = query.gt('stock_qty', 10);
+    if (brandFilter) query = query.ilike('brand', `%${brandFilter}%`);
+    if (featuredOnly) query = query.eq('is_featured', true);
+
+    query = query.range(from, to);
+
+    const { data: products, error, count } = await query;
 
     if (error) { showToast(error.message, 'error'); return; }
 
@@ -31,6 +99,7 @@ async function loadProducts(search = '', categoryFilter = '') {
     const tbody = document.getElementById('productsTable');
     if (!products || products.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-box-open"></i><h4>No products yet. Add your first product!</h4></div></td></tr>';
+        renderPagination('productsPagination', 0, page, PAGE_SIZE, () => {});
         return;
     }
 
@@ -78,15 +147,25 @@ async function loadProducts(search = '', categoryFilter = '') {
             </tr>
         `;
     }).join('');
+
+    renderPagination('productsPagination', count, page, PAGE_SIZE, (newPage) => {
+        loadProducts(
+            document.getElementById('productSearch').value,
+            document.getElementById('productCategoryFilter').value,
+            newPage
+        );
+    });
 }
 
 // ===== PRODUCT SEARCH & FILTER =====
 document.getElementById('productSearch').addEventListener('input', (e) => {
-    loadProducts(e.target.value, document.getElementById('productCategoryFilter').value);
+    productsCurrentPage = 1;
+    loadProducts(e.target.value, document.getElementById('productCategoryFilter').value, 1);
 });
 
 document.getElementById('productCategoryFilter').addEventListener('change', (e) => {
-    loadProducts(document.getElementById('productSearch').value, e.target.value);
+    productsCurrentPage = 1;
+    loadProducts(document.getElementById('productSearch').value, e.target.value, 1);
 });
 
 // ===== SUBCATEGORY DROPDOWN IN PRODUCT FORM =====
@@ -131,7 +210,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
     }
 
     const data = {
-        name,
+        name: toTitleCase(name),
         name_te: document.getElementById('productNameTe').value.trim() || null,
         slug: slugify(name),
         description: document.getElementById('productDescription').value.trim() || null,
@@ -143,7 +222,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
         unit: document.getElementById('productUnit').value,
         unit_value: parseFloat(document.getElementById('productUnitValue').value) || 1,
         low_stock_threshold: parseInt(document.getElementById('productLowStock').value) || 10,
-        brand: document.getElementById('productBrand').value.trim() || null,
+        brand: toTitleCase(document.getElementById('productBrand').value.trim()) || null,
         barcode: document.getElementById('productBarcode').value.trim() || null, // auto-generated below if empty on insert
         gst_percent: parseFloat(document.getElementById('productGST').value) || 0,
         image_url: document.getElementById('productImageUrl').value.trim() || null,
@@ -166,7 +245,7 @@ document.getElementById('saveProductBtn').addEventListener('click', async () => 
     if (error) { showToast(error.message, 'error'); return; }
     showToast(id ? 'Product updated!' : `Product added! Barcode: ${data.barcode}`);
     closeModal('productModal');
-    loadProducts();
+    loadProducts('', '', 1);
 });
 
 // ===== EDIT PRODUCT =====
@@ -210,10 +289,24 @@ window.editProduct = async function(id) {
 };
 
 // ===== DELETE PRODUCT =====
+// ===== GENERATE BARCODE =====
+// Auto-generates a store barcode (CK00001 format) for the product
+window.generateBarcode = async function() {
+    const field = document.getElementById('productBarcode');
+    if (field.value.trim()) {
+        const ok = await toastConfirm('Barcode already exists. Replace?', 'Yes, Replace');
+        if (!ok) return;
+    }
+    const { count } = await db.from('products').select('id', { count: 'exact', head: true });
+    const code = 'CK' + String((count || 0) + 1).padStart(5, '0');
+    field.value = code;
+    showToast('Barcode generated: ' + code);
+};
+
 window.deleteProduct = async function(id) {
-    if (!confirm('Delete this product?')) return;
+    if (!await toastConfirm('Delete this product?')) return;
     const { error } = await db.from('products').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Product deleted!');
-    loadProducts();
+    loadProducts('', '', productsCurrentPage);
 };

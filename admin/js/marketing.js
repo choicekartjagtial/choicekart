@@ -5,16 +5,28 @@
 // Banner image upload uses uploadImage() from images.js.
 // Depends on: db (supabase-config.js), utils.js, images.js
 
-// ===== LOAD COUPONS =====
-async function loadCoupons() {
-    if (!db) return;
+let couponsCurrentPage = 1;
 
-    const { data, error } = await db.from('coupons').select('*').order('created_at', { ascending: false });
+// ===== LOAD COUPONS =====
+async function loadCoupons(page = 1) {
+    if (!db) return;
+    couponsCurrentPage = page;
+
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    const { data, error, count } = await db
+        .from('coupons')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
     if (error) { showToast(error.message, 'error'); return; }
 
     const tbody = document.getElementById('couponsTable');
     if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-ticket-alt"></i><h4>No coupons yet</h4></div></td></tr>';
+        renderPagination('couponsPagination', 0, page, PAGE_SIZE, () => {});
         return;
     }
 
@@ -32,6 +44,8 @@ async function loadCoupons() {
             </td>
         </tr>
     `).join('');
+
+    renderPagination('couponsPagination', count, page, PAGE_SIZE, (newPage) => { loadCoupons(newPage); });
 }
 
 // ===== ADD COUPON BUTTON =====
@@ -71,7 +85,7 @@ document.getElementById('saveCouponBtn').addEventListener('click', async () => {
     if (error) { showToast(error.message, 'error'); return; }
     showToast(id ? 'Coupon updated!' : 'Coupon added!');
     closeModal('couponModal');
-    loadCoupons();
+    loadCoupons(couponsCurrentPage);
 });
 
 // ===== EDIT COUPON =====
@@ -93,14 +107,16 @@ window.editCoupon = async function(id) {
 
 // ===== DELETE COUPON =====
 window.deleteCoupon = async function(id) {
-    if (!confirm('Delete this coupon?')) return;
+    if (!await toastConfirm('Delete this coupon?')) return;
     const { error } = await db.from('coupons').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Coupon deleted!');
-    loadCoupons();
+    loadCoupons(couponsCurrentPage);
 };
 
 // ===== LOAD BANNERS =====
+const positionLabels = { home: 'Home Page', category: 'Category', offer: 'Offers', popup: 'Popup' };
+
 async function loadBanners() {
     if (!db) return;
 
@@ -115,11 +131,15 @@ async function loadBanners() {
 
     tbody.innerHTML = data.map(b => `
         <tr>
-            <td><img src="${imgPath(b.image_url)}" style="width:120px;height:60px;object-fit:cover;border-radius:6px;"></td>
-            <td><strong>${b.title}</strong></td>
-            <td>${b.position}</td>
-            <td><span class="badge-status ${b.is_active ? 'badge-active' : 'badge-inactive'}">${b.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td><img src="${imgPath(b.image_url)}" style="width:140px;height:56px;object-fit:${b.fit || 'contain'};border-radius:8px;background:#F3F4F6;border:1px solid var(--border);"></td>
             <td>
+                <strong>${b.title}</strong>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Fit: ${b.fit || 'contain'}</div>
+            </td>
+            <td><span class="badge-status badge-active">${positionLabels[b.position] || b.position}</span></td>
+            <td><span class="badge-status ${b.is_active ? 'badge-active' : 'badge-inactive'}">${b.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td style="white-space:nowrap;">
+                <button class="btn btn-outline btn-sm" onclick="editBanner('${b.id}')"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-danger btn-sm" onclick="deleteBanner('${b.id}')"><i class="fas fa-trash"></i></button>
             </td>
         </tr>
@@ -128,7 +148,7 @@ async function loadBanners() {
 
 // ===== DELETE BANNER =====
 window.deleteBanner = async function(id) {
-    if (!confirm('Delete this banner?')) return;
+    if (!await toastConfirm('Delete this banner?')) return;
     const { error } = await db.from('banners').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Banner deleted!');
@@ -138,13 +158,37 @@ window.deleteBanner = async function(id) {
 // ===== ADD BANNER BUTTON =====
 document.getElementById('addBannerBtn').addEventListener('click', () => {
     document.getElementById('bannerForm').reset();
+    document.getElementById('bannerId').value = '';
     document.getElementById('bannerImageUrl').value = '';
     document.getElementById('bannerImagePreview').style.display = 'none';
+    document.getElementById('bannerModalTitle').textContent = 'Add Banner';
     openModal('bannerModal');
 });
 
+// ===== EDIT BANNER =====
+window.editBanner = async function(id) {
+    const { data: b } = await db.from('banners').select('*').eq('id', id).single();
+    if (!b) return;
+    document.getElementById('bannerId').value = b.id;
+    document.getElementById('bannerTitle').value = b.title;
+    document.getElementById('bannerImageUrl').value = b.image_url || '';
+    document.getElementById('bannerLinkUrl').value = b.link_url || '';
+    document.getElementById('bannerPosition').value = b.position;
+    document.getElementById('bannerSortOrder').value = b.sort_order || 0;
+    document.getElementById('bannerFit').value = b.fit || 'contain';
+    document.getElementById('bannerModalTitle').textContent = 'Edit Banner';
+    // Show preview
+    const preview = document.getElementById('bannerImagePreview');
+    if (b.image_url) {
+        preview.src = imgPath(b.image_url);
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+    openModal('bannerModal');
+};
+
 // ===== BANNER IMAGE UPLOAD =====
-// Uses uploadImage() from images.js to upload to Supabase Storage
 document.getElementById('bannerImageFile').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -161,23 +205,32 @@ document.getElementById('bannerImageFile').addEventListener('change', async (e) 
     }
 });
 
-// ===== SAVE BANNER =====
+// ===== SAVE BANNER (insert or update) =====
 document.getElementById('saveBannerBtn').addEventListener('click', async () => {
+    const id = document.getElementById('bannerId').value;
     const title = document.getElementById('bannerTitle').value.trim();
     const imageUrl = document.getElementById('bannerImageUrl').value.trim();
     if (!title) { showToast('Banner title is required', 'error'); return; }
     if (!imageUrl) { showToast('Please upload a banner image', 'error'); return; }
 
-    const { error } = await db.from('banners').insert({
+    const data = {
         title,
         image_url: imageUrl,
         link_url: document.getElementById('bannerLinkUrl').value.trim() || null,
         position: document.getElementById('bannerPosition').value,
-        sort_order: parseInt(document.getElementById('bannerSortOrder').value) || 0
-    });
+        sort_order: parseInt(document.getElementById('bannerSortOrder').value) || 0,
+        fit: document.getElementById('bannerFit').value || 'contain'
+    };
+
+    let error;
+    if (id) {
+        ({ error } = await db.from('banners').update(data).eq('id', id));
+    } else {
+        ({ error } = await db.from('banners').insert(data));
+    }
 
     if (error) { showToast(error.message, 'error'); return; }
-    showToast('Banner added successfully!');
+    showToast(id ? 'Banner updated!' : 'Banner added!');
     closeModal('bannerModal');
     loadBanners();
 });

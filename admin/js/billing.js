@@ -7,12 +7,17 @@
 
 // Billing state
 let billingCart = [];
-let billingCoupon = null; // Stores applied coupon: { code, discount_type, discount_value, max_discount, ... }
+let billingCoupon = null;
+let billingDefaultGST = 0; // Fallback GST from store settings
 
 /**
  * Initialize the billing section (called when navigating to billing).
+ * Loads default GST from store settings.
  */
-function initBilling() {
+async function initBilling() {
+    // Load default GST from store settings
+    const { data } = await db.from('store_settings').select('value').eq('key', 'default_gst_percent').single();
+    billingDefaultGST = Number(data?.value) || 0;
     renderBillingCart();
 }
 
@@ -78,7 +83,7 @@ window.addToBilling = async function(productId) {
             brand: p.brand,
             mrp: Number(p.mrp),
             price: Number(p.selling_price),
-            gst_percent: Number(p.gst_percent) || 0,
+            gst_percent: Number(p.gst_percent) || billingDefaultGST,
             qty: 1,
             unit: p.unit,
             unit_value: p.unit_value
@@ -160,11 +165,13 @@ function renderBillingCart() {
 
     const afterDiscount = sellingTotal - couponDiscount;
     const gst = billingCart.reduce((t, i) => t + (i.price * i.qty * i.gst_percent / 100), 0);
+    const cgst = gst / 2;
+    const sgst = gst / 2;
     const grandTotal = afterDiscount + gst;
 
     document.getElementById('billingSubtotal').textContent = formatCurrency(subtotal);
     document.getElementById('billingDiscount').textContent = '-' + formatCurrency(discount);
-    document.getElementById('billingGST').textContent = formatCurrency(gst);
+    document.getElementById('billingGST').textContent = `${formatCurrency(gst)} (CGST ${formatCurrency(cgst)} + SGST ${formatCurrency(sgst)})`;
     document.getElementById('billingTotal').textContent = formatCurrency(grandTotal);
 }
 
@@ -325,8 +332,8 @@ document.getElementById('billingApplyCoupon').addEventListener('click', async ()
 });
 
 // ===== CLEAR BILLING =====
-document.getElementById('billingClearBtn').addEventListener('click', () => {
-    if (billingCart.length > 0 && !confirm('Clear all items from the bill?')) return;
+document.getElementById('billingClearBtn').addEventListener('click', async () => {
+    if (billingCart.length > 0 && !await toastConfirm('Clear all items from the bill?', 'Yes, Clear')) return;
     billingCart = [];
     billingCoupon = null;
     document.getElementById('billingCustomerPhone').value = '';

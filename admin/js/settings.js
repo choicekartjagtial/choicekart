@@ -28,6 +28,10 @@ async function loadSettings() {
     document.getElementById('setDeliveryRadius').value = settings.delivery_radius_km || '';
     document.getElementById('setGST').value = settings.gst_number || '';
 
+    // GST settings
+    document.getElementById('setDefaultGST').value = settings.default_gst_percent || '';
+    document.getElementById('setGSTIN').value = settings.gstin_number || '';
+
     // Payment options
     document.getElementById('setCODEnabled').checked = settings.cod_enabled !== 'false'; // default true
     document.getElementById('setRazorpayKeyId').value = settings.razorpay_key_id || '';
@@ -49,6 +53,8 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
         closing_time: document.getElementById('setCloseTime').value,
         delivery_radius_km: document.getElementById('setDeliveryRadius').value,
         gst_number: document.getElementById('setGST').value,
+        default_gst_percent: document.getElementById('setDefaultGST').value || '0',
+        gstin_number: document.getElementById('setGSTIN').value,
         cod_enabled: document.getElementById('setCODEnabled').checked ? 'true' : 'false',
         razorpay_key_id: document.getElementById('setRazorpayKeyId').value,
         razorpay_key_secret: document.getElementById('setRazorpayKeySecret').value
@@ -90,7 +96,7 @@ async function loadServiceAreas() {
 
 // ===== DELETE SERVICE AREA =====
 window.deleteServiceArea = async function(id) {
-    if (!confirm('Delete this service area?')) return;
+    if (!await toastConfirm('Delete this service area?')) return;
     const { error } = await db.from('service_areas').delete().eq('id', id);
     if (error) { showToast(error.message, 'error'); return; }
     showToast('Service area deleted!');

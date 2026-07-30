@@ -25,6 +25,8 @@ const CATEGORY_ICONS = {
 const PLACEHOLDER_IMG = 'assets/images/logo.jpeg';
 
 // ===== LOAD BANNERS FROM SUPABASE =====
+// Banners are added AFTER the default hero slide and auto-scroll together.
+// Default hero is always slide 0. Admin banners are slides 1, 2, 3...
 async function loadBanners() {
     const { data: banners, error } = await db
         .from('banners')
@@ -33,48 +35,52 @@ async function loadBanners() {
         .eq('position', 'home')
         .order('sort_order');
 
-    if (error || !banners || banners.length === 0) return; // Keep default hero
+    if (error || !banners || banners.length === 0) return; // Keep default hero only
 
     const slider = document.getElementById('banner-slider');
     const dots = document.getElementById('banner-dots');
-    const defaultHero = document.getElementById('default-hero');
 
-    // Hide default hero, add banner slides
-    defaultHero.classList.remove('active');
-    defaultHero.style.display = 'none';
+    // Add dot for default hero (slide 0)
+    const heroDot = document.createElement('button');
+    heroDot.className = 'banner-dot active';
+    heroDot.onclick = () => goToBanner(0);
+    dots.appendChild(heroDot);
 
+    // Add admin banner slides after the default hero
     banners.forEach((b, i) => {
         const slide = document.createElement('div');
-        slide.className = `banner-slide image-banner ${i === 0 ? 'active' : ''}`;
+        slide.className = 'banner-slide image-banner';
+        // Use object-fit: contain to prevent cropping — full image visible
         slide.innerHTML = b.link_url
-            ? `<a href="${b.link_url}"><img src="${b.image_url}" alt="${b.title}" loading="lazy"></a>`
-            : `<img src="${b.image_url}" alt="${b.title}" loading="lazy">`;
+            ? `<a href="${b.link_url}"><img src="${b.image_url}" alt="${b.title}" loading="lazy" style="width:100%;max-height:480px;object-fit:${b.fit || 'contain'};"></a>`
+            : `<img src="${b.image_url}" alt="${b.title}" loading="lazy" style="width:100%;max-height:480px;object-fit:${b.fit || 'contain'};">`;
         slider.appendChild(slide);
 
-        // Add dot
+        // Add dot for this banner
         const dot = document.createElement('button');
-        dot.className = `banner-dot ${i === 0 ? 'active' : ''}`;
-        dot.onclick = () => goToBanner(i);
+        dot.className = 'banner-dot';
+        dot.onclick = () => goToBanner(i + 1); // +1 because default hero is slide 0
         dots.appendChild(dot);
     });
 
-    // Auto-scroll if multiple banners
-    if (banners.length > 1) {
-        let current = 0;
-        setInterval(() => {
-            current = (current + 1) % banners.length;
-            goToBanner(current);
-        }, 4000);
-    }
+    // Auto-scroll all slides (hero + banners) every 5 seconds
+    const totalSlides = banners.length + 1; // +1 for default hero
+    let current = 0;
+    setInterval(() => {
+        current = (current + 1) % totalSlides;
+        goToBanner(current);
+    }, 5000);
 }
 
 function goToBanner(index) {
-    const slides = document.querySelectorAll('.banner-slide.image-banner');
-    const dots = document.querySelectorAll('.banner-dot');
-    slides.forEach((s, i) => {
+    // Get all slides (default hero + admin banners)
+    const allSlides = document.querySelectorAll('.banner-slide');
+    const allDots = document.querySelectorAll('.banner-dot');
+
+    allSlides.forEach((s, i) => {
         s.classList.toggle('active', i === index);
     });
-    dots.forEach((d, i) => {
+    allDots.forEach((d, i) => {
         d.classList.toggle('active', i === index);
     });
 }
@@ -96,18 +102,70 @@ async function loadCategories() {
     renderCategoriesGrid();
 }
 
+// Website product pagination
+const PRODUCTS_PER_PAGE = 20;
+let currentProductPage = 1;
+let totalProductCount = 0;
+let currentCategoryFilter = 'all';
+
 async function loadProducts() {
-    const { data, error } = await db
+    // Load first page — recently modified/added first
+    const { data, error, count } = await db
         .from('products')
-        .select('*, categories(name, slug)')
+        .select('*, categories(name, slug)', { count: 'exact' })
         .eq('is_active', true)
-        .order('sort_order');
+        .order('updated_at', { ascending: false })
+        .range(0, PRODUCTS_PER_PAGE - 1);
 
     if (error) { console.error('Products load error:', error); return; }
-    products = (data || []).map(p => ({
+    totalProductCount = count || 0;
+    currentProductPage = 1;
+    currentCategoryFilter = 'all';
+
+    products = mapProducts(data);
+    renderProducts('all');
+}
+
+/** Load a specific page of products */
+async function loadProductPage(page) {
+    currentProductPage = page;
+    const from = (page - 1) * PRODUCTS_PER_PAGE;
+    const to = from + PRODUCTS_PER_PAGE - 1;
+
+    let query = db
+        .from('products')
+        .select('*, categories(name, slug)', { count: 'exact' })
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .range(from, to);
+
+    const { data, error, count } = await query;
+    if (error) { console.error('Load page error:', error); return; }
+
+    totalProductCount = count || 0;
+    products = mapProducts(data);
+    renderProducts(currentCategoryFilter);
+
+    // Scroll to products section
+    document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/** Title Case helper — "aashirvaad WHOLE wheat" → "Aashirvaad Whole Wheat" */
+function toTitleCase(text) {
+    if (!text) return '';
+    const minor = ['of','and','the','in','on','at','to','for','with','a','an'];
+    return text.trim().split(/\s+/).map((w, i) => {
+        const l = w.toLowerCase();
+        return (i > 0 && minor.includes(l)) ? l : l.charAt(0).toUpperCase() + l.slice(1);
+    }).join(' ');
+}
+
+/** Map Supabase product rows to frontend format */
+function mapProducts(data) {
+    return (data || []).map(p => ({
         id: p.id,
-        name: p.name,
-        brand: p.brand || '',
+        name: toTitleCase(p.name),
+        brand: toTitleCase(p.brand) || '',
         price: Number(p.selling_price),
         originalPrice: Number(p.mrp),
         discount: p.mrp > p.selling_price ? Math.round((1 - p.selling_price / p.mrp) * 100) : 0,
@@ -117,8 +175,6 @@ async function loadProducts() {
         image: p.image_url || PLACEHOLDER_IMG,
         is_featured: p.is_featured
     }));
-
-    renderProducts('all');
 }
 
 // ===== RENDER CATEGORY NAV =====
@@ -294,11 +350,44 @@ function updateCartUI() {
         </div>
     `).join('');
 
+    const cartTotal = getCartTotal();
     document.querySelectorAll('.cart-total-amount').forEach(el => {
-        el.textContent = '\u20B9' + getCartTotal().toLocaleString('en-IN');
+        el.textContent = '\u20B9' + cartTotal.toLocaleString('en-IN');
     });
     const savings = document.getElementById('cart-savings');
     if (savings) savings.textContent = '\u20B9' + getCartSavings().toLocaleString('en-IN');
+
+    // Free delivery progress bar (₹499 threshold)
+    const FREE_DELIVERY_THRESHOLD = 499;
+    const freeBar = document.getElementById('freeDeliveryBar');
+    if (freeBar) {
+        const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - cartTotal);
+        const progress = Math.min(100, (cartTotal / FREE_DELIVERY_THRESHOLD) * 100);
+        if (remaining > 0) {
+            freeBar.innerHTML = `
+                <div style="background:#FEF3C7;border-radius:10px;padding:10px 14px;">
+                    <div style="font-size:13px;font-weight:600;color:#92400E;margin-bottom:6px;">
+                        <i class="fas fa-truck"></i> Add ₹${remaining.toLocaleString('en-IN')} more for <span style="color:#059669;">FREE delivery!</span>
+                    </div>
+                    <div style="background:#E5E7EB;border-radius:4px;height:6px;overflow:hidden;">
+                        <div style="background:linear-gradient(90deg,#F59E0B,#059669);height:100%;border-radius:4px;width:${progress}%;transition:width 0.3s;"></div>
+                    </div>
+                </div>`;
+        } else {
+            freeBar.innerHTML = `
+                <div style="background:#ECFDF5;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-check-circle" style="color:#059669;font-size:16px;"></i>
+                    <span style="font-size:13px;font-weight:600;color:#065F46;">You get FREE delivery!</span>
+                </div>`;
+        }
+    }
+
+    // Update delivery text
+    const deliveryEl = document.getElementById('cart-delivery');
+    if (deliveryEl) {
+        deliveryEl.textContent = cartTotal >= FREE_DELIVERY_THRESHOLD ? 'FREE' : '₹30';
+        deliveryEl.style.color = cartTotal >= FREE_DELIVERY_THRESHOLD ? '#059669' : '#F59E0B';
+    }
 
     // Update product card buttons
     document.querySelectorAll('.product-card').forEach(card => {
@@ -319,20 +408,8 @@ function updateCartUI() {
 }
 
 // ===== RENDER PRODUCTS =====
-function renderProducts(filterCategory = 'all') {
-    const grid = document.getElementById('products-grid');
-    if (!grid) return;
-
-    const filtered = filterCategory === 'all'
-        ? products
-        : products.filter(p => p.category === filterCategory);
-
-    if (filtered.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:#9CA3AF;"><i class="fas fa-box-open" style="font-size:52px;margin-bottom:20px;display:block;"></i><p style="font-size:18px;font-weight:600;color:#5A5D72;margin-bottom:8px;">No products available yet</p><p style="font-size:14px;">Products will appear here once added by admin.</p></div>';
-        return;
-    }
-
-    grid.innerHTML = filtered.map(product => `
+function renderProductCard(product) {
+    return `
         <div class="product-card" data-id="${product.id}">
             ${product.discount > 0 ? `<span class="product-discount">${product.discount}% OFF</span>` : ''}
             <button class="product-wishlist" onclick="toggleWishlist(this)" title="Add to Wishlist">
@@ -360,7 +437,79 @@ function renderProducts(filterCategory = 'all') {
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+}
+
+function renderProducts(filterCategory = 'all', append = false) {
+    const grid = document.getElementById('products-grid');
+    if (!grid) return;
+
+    currentCategoryFilter = filterCategory;
+
+    const filtered = filterCategory === 'all'
+        ? products
+        : products.filter(p => p.category === filterCategory);
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:#9CA3AF;"><i class="fas fa-box-open" style="font-size:52px;margin-bottom:20px;display:block;"></i><p style="font-size:18px;font-weight:600;color:#5A5D72;margin-bottom:8px;">No products available yet</p><p style="font-size:14px;">Products will appear here once added by admin.</p></div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(renderProductCard).join('');
+
+    // Remove old pagination
+    document.getElementById('websiteProductPagination')?.remove();
+
+    // Render numbered pagination if needed
+    const totalPages = Math.ceil(totalProductCount / PRODUCTS_PER_PAGE);
+    if (totalPages > 1) {
+        const pagDiv = document.createElement('div');
+        pagDiv.id = 'websiteProductPagination';
+        pagDiv.style.cssText = 'grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;padding:24px 0;flex-wrap:wrap;';
+
+        let pagHtml = '';
+
+        // Previous button
+        pagHtml += `<button onclick="loadProductPage(${currentProductPage - 1})" ${currentProductPage <= 1 ? 'disabled' : ''}
+            style="padding:8px 14px;border:1.5px solid #E5E7EB;border-radius:10px;background:white;font-size:13px;cursor:pointer;font-family:inherit;${currentProductPage <= 1 ? 'opacity:0.4;cursor:default;' : ''}">
+            <i class="fas fa-chevron-left"></i> Prev
+        </button>`;
+
+        // Page numbers (show max 7 pages with ellipsis)
+        const maxVisible = 7;
+        let startPage = Math.max(1, currentProductPage - 3);
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+
+        if (startPage > 1) {
+            pagHtml += `<button onclick="loadProductPage(1)" style="padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:10px;background:white;font-size:13px;cursor:pointer;font-family:inherit;">1</button>`;
+            if (startPage > 2) pagHtml += `<span style="color:#9CA3AF;font-size:13px;">...</span>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const isActive = i === currentProductPage;
+            pagHtml += `<button onclick="loadProductPage(${i})"
+                style="padding:8px 12px;border:1.5px solid ${isActive ? '#059669' : '#E5E7EB'};border-radius:10px;background:${isActive ? '#059669' : 'white'};color:${isActive ? 'white' : '#374151'};font-size:13px;font-weight:${isActive ? '700' : '500'};cursor:pointer;font-family:inherit;">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) pagHtml += `<span style="color:#9CA3AF;font-size:13px;">...</span>`;
+            pagHtml += `<button onclick="loadProductPage(${totalPages})" style="padding:8px 12px;border:1.5px solid #E5E7EB;border-radius:10px;background:white;font-size:13px;cursor:pointer;font-family:inherit;">${totalPages}</button>`;
+        }
+
+        // Next button
+        pagHtml += `<button onclick="loadProductPage(${currentProductPage + 1})" ${currentProductPage >= totalPages ? 'disabled' : ''}
+            style="padding:8px 14px;border:1.5px solid #E5E7EB;border-radius:10px;background:white;font-size:13px;cursor:pointer;font-family:inherit;${currentProductPage >= totalPages ? 'opacity:0.4;cursor:default;' : ''}">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>`;
+
+        // Page info
+        pagHtml += `<span style="font-size:12px;color:#9CA3AF;margin-left:12px;">Page ${currentProductPage} of ${totalPages} (${totalProductCount} products)</span>`;
+
+        pagDiv.innerHTML = pagHtml;
+        grid.parentNode.insertBefore(pagDiv, grid.nextSibling);
+    }
+
     updateCartUI();
 }
 

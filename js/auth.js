@@ -57,7 +57,8 @@ function customerLogout() {
 /** Toggle Login/Account button in header based on session */
 function updateAuthUI() {
     const customer = getCustomer();
-    const loginBtn = document.querySelector('.header-action[onclick*="openLoginModal"]');
+    // Find the auth button by id (more reliable than onclick selector)
+    const loginBtn = document.getElementById('authHeaderBtn');
     if (!loginBtn) return;
 
     if (customer) {
