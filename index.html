@@ -660,6 +660,15 @@
             <!-- Free delivery progress bar -->
             <div id="freeDeliveryBar" style="margin-bottom:14px;"></div>
 
+            <!-- Coupon Code -->
+            <div id="cartCouponSection" style="margin-bottom:14px;">
+                <div style="display:flex;gap:8px;">
+                    <input type="text" id="cartCouponInput" placeholder="Enter coupon code" style="flex:1;padding:10px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-family:inherit;text-transform:uppercase;outline:none;" onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='#E5E7EB'">
+                    <button onclick="applyCartCoupon()" style="padding:10px 18px;background:#059669;color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;">Apply</button>
+                </div>
+                <div id="cartCouponStatus" style="font-size:12px;margin-top:6px;"></div>
+            </div>
+
             <div class="cart-summary">
                 <div class="cart-summary-row">
                     <span>Subtotal</span>
@@ -669,13 +678,17 @@
                     <span>You Save</span>
                     <span id="cart-savings" style="color:#059669; font-weight:600;">&#8377;0</span>
                 </div>
+                <div class="cart-summary-row" id="cartCouponRow" style="display:none;">
+                    <span>Coupon Discount</span>
+                    <span id="cart-coupon-discount" style="color:#059669; font-weight:600;">-&#8377;0</span>
+                </div>
                 <div class="cart-summary-row">
                     <span>Delivery</span>
                     <span id="cart-delivery" style="color:#059669; font-weight:600;">FREE</span>
                 </div>
                 <div class="cart-summary-row total">
                     <span>Total Amount</span>
-                    <span class="cart-total-amount">&#8377;0</span>
+                    <span id="cart-final-total">&#8377;0</span>
                 </div>
             </div>
             <button class="checkout-btn" onclick="openCheckout()">

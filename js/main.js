@@ -282,6 +282,83 @@ function getCartTotal() { return cart.reduce((t, i) => t + i.price * i.qty, 0); 
 function getCartCount() { return cart.reduce((c, i) => c + i.qty, 0); }
 function getCartSavings() { return cart.reduce((t, i) => t + (i.originalPrice - i.price) * i.qty, 0); }
 
+// ===== CART COUPON =====
+let cartCoupon = null; // { code, discount_type, discount_value, min_order_amount, max_discount }
+let cartCouponDiscount = 0;
+
+/** Apply coupon code in cart */
+async function applyCartCoupon() {
+    const input = document.getElementById('cartCouponInput');
+    const status = document.getElementById('cartCouponStatus');
+    const code = input.value.trim().toUpperCase();
+
+    if (!code) { status.innerHTML = '<span style="color:#EF4444;">Enter a coupon code</span>'; return; }
+
+    // Look up coupon in database
+    const { data: coupon, error } = await db
+        .from('coupons')
+        .select('*')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single();
+
+    if (error || !coupon) {
+        cartCoupon = null;
+        cartCouponDiscount = 0;
+        status.innerHTML = '<span style="color:#EF4444;"><i class="fas fa-times-circle"></i> Invalid coupon code</span>';
+        updateCartUI();
+        return;
+    }
+
+    // Check expiry
+    if (coupon.valid_until && new Date(coupon.valid_until) < new Date()) {
+        status.innerHTML = '<span style="color:#EF4444;"><i class="fas fa-times-circle"></i> Coupon has expired</span>';
+        return;
+    }
+
+    // Check min order amount
+    const subtotal = getCartTotal();
+    if (coupon.min_order_amount && subtotal < Number(coupon.min_order_amount)) {
+        status.innerHTML = `<span style="color:#EF4444;"><i class="fas fa-times-circle"></i> Min order ₹${Number(coupon.min_order_amount).toLocaleString('en-IN')} required</span>`;
+        return;
+    }
+
+    // Check usage limit
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) {
+        status.innerHTML = '<span style="color:#EF4444;"><i class="fas fa-times-circle"></i> Coupon usage limit reached</span>';
+        return;
+    }
+
+    // Valid — calculate discount
+    cartCoupon = coupon;
+    if (coupon.discount_type === 'percentage') {
+        cartCouponDiscount = subtotal * Number(coupon.discount_value) / 100;
+        if (coupon.max_discount) cartCouponDiscount = Math.min(cartCouponDiscount, Number(coupon.max_discount));
+    } else {
+        cartCouponDiscount = Number(coupon.discount_value);
+    }
+
+    const discountText = coupon.discount_type === 'percentage'
+        ? `${coupon.discount_value}% off` + (coupon.max_discount ? ` (max ₹${coupon.max_discount})` : '')
+        : `₹${coupon.discount_value} off`;
+
+    status.innerHTML = `
+        <span style="color:#059669;"><i class="fas fa-check-circle"></i> <strong>${code}</strong> applied — ${discountText}!</span>
+        <span onclick="removeCartCoupon()" style="color:#EF4444;cursor:pointer;margin-left:8px;font-size:11px;"><i class="fas fa-times"></i> Remove</span>
+    `;
+
+    updateCartUI();
+}
+
+/** Remove applied coupon */
+function removeCartCoupon() {
+    cartCoupon = null;
+    cartCouponDiscount = 0;
+    document.getElementById('cartCouponInput').value = '';
+    document.getElementById('cartCouponStatus').innerHTML = '';
+    updateCartUI();
+}
+
 // ===== UPDATE CART UI =====
 function updateCartUI() {
     const count = getCartCount();
@@ -383,10 +460,30 @@ function updateCartUI() {
     }
 
     // Update delivery text
+    const deliveryCharge = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : 30;
     const deliveryEl = document.getElementById('cart-delivery');
     if (deliveryEl) {
-        deliveryEl.textContent = cartTotal >= FREE_DELIVERY_THRESHOLD ? 'FREE' : '₹30';
-        deliveryEl.style.color = cartTotal >= FREE_DELIVERY_THRESHOLD ? '#059669' : '#F59E0B';
+        deliveryEl.textContent = deliveryCharge === 0 ? 'FREE' : '₹' + deliveryCharge;
+        deliveryEl.style.color = deliveryCharge === 0 ? '#059669' : '#F59E0B';
+    }
+
+    // Coupon discount row
+    const couponRow = document.getElementById('cartCouponRow');
+    const couponDiscountEl = document.getElementById('cart-coupon-discount');
+    if (couponRow && couponDiscountEl) {
+        if (cartCoupon && cartCouponDiscount > 0) {
+            couponRow.style.display = 'flex';
+            couponDiscountEl.textContent = '-₹' + cartCouponDiscount.toLocaleString('en-IN');
+        } else {
+            couponRow.style.display = 'none';
+        }
+    }
+
+    // Final total (subtotal - coupon + delivery)
+    const finalTotal = cartTotal - cartCouponDiscount + deliveryCharge;
+    const finalTotalEl = document.getElementById('cart-final-total');
+    if (finalTotalEl) {
+        finalTotalEl.textContent = '₹' + Math.max(0, finalTotal).toLocaleString('en-IN');
     }
 
     // Update product card buttons
