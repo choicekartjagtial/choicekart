@@ -156,12 +156,16 @@ window.deleteBanner = async function(id) {
 };
 
 // ===== ADD BANNER BUTTON =====
-document.getElementById('addBannerBtn').addEventListener('click', () => {
+document.getElementById('addBannerBtn').addEventListener('click', async () => {
     document.getElementById('bannerForm').reset();
     document.getElementById('bannerId').value = '';
     document.getElementById('bannerImageUrl').value = '';
     document.getElementById('bannerImagePreview').style.display = 'none';
     document.getElementById('bannerModalTitle').textContent = 'Add Banner';
+    // Auto-set sort order to max + 1
+    const { data } = await db.from('banners').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+    const nextOrder = (data && data.length > 0) ? data[0].sort_order + 1 : 1;
+    document.getElementById('bannerSortOrder').value = nextOrder;
     openModal('bannerModal');
 });
 

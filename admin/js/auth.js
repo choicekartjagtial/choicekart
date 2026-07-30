@@ -106,10 +106,10 @@ function applyRolePermissions(role) {
     const roleAccess = {
         owner: ['dashboard', 'products', 'categories', 'orders', 'customers',
                 'online-orders', 'delivery-boys', 'delivery-charges',
-                'coupons', 'banners', 'billing', 'reports', 'staff', 'service-areas', 'settings'],
+                'offers', 'coupons', 'banners', 'billing', 'reports', 'staff', 'service-areas', 'settings'],
         manager: ['dashboard', 'products', 'categories', 'orders', 'customers',
                   'online-orders', 'delivery-boys', 'delivery-charges',
-                  'coupons', 'banners', 'billing', 'reports'],
+                  'offers', 'coupons', 'banners', 'billing', 'reports'],
         staff: ['dashboard', 'products', 'orders', 'online-orders', 'billing']
     };
 

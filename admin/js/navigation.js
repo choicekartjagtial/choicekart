@@ -38,6 +38,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
             case 'delivery-charges': loadDeliveryCharges(); break;
             case 'coupons': loadCoupons(); break;
             case 'banners': loadBanners(); break;
+            case 'offers': loadOffers(); break;
             case 'service-areas': loadServiceAreas(); break;
             case 'settings': loadSettings(); break;
             case 'staff': loadStaff(); break;

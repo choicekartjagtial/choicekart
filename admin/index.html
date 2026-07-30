@@ -159,6 +159,9 @@
             </div>
 
             <div class="nav-section">Marketing</div>
+            <div class="nav-item" data-section="offers">
+                <i class="fas fa-fire"></i> Deals & Offers
+            </div>
             <div class="nav-item" data-section="coupons">
                 <i class="fas fa-ticket-alt"></i> Coupons
             </div>
@@ -324,6 +327,7 @@
                                     <th>Category</th>
                                     <th>Subcategories</th>
                                     <th>Products</th>
+                                    <th>Order</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -659,6 +663,34 @@
             </div>
 
             <!-- ===== BANNERS SECTION ===== -->
+            <!-- ===== OFFERS / DEALS SECTION ===== -->
+            <div class="section" id="sec-offers">
+                <div class="toolbar">
+                    <button class="btn btn-primary" id="addOfferBtn">
+                        <i class="fas fa-plus"></i> Add Offer
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Value</th>
+                                    <th>Style</th>
+                                    <th>Order</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="offersTable">
+                                <tr><td colspan="6"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div class="section" id="sec-banners">
                 <div class="toolbar">
                     <button class="btn btn-primary" id="addBannerBtn">
@@ -1280,6 +1312,82 @@
     </div>
 </div>
 
+<!-- Offer Modal -->
+<div class="modal-overlay" id="offerModal">
+    <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+            <h3 id="offerModalTitle">Add Offer</h3>
+            <button class="modal-close" onclick="closeModal('offerModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="offerForm">
+                <input type="hidden" id="offerId">
+                <div class="form-group">
+                    <label>Title * (e.g. "Mega Sunday Special")</label>
+                    <input type="text" class="form-control" id="offerTitle" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Subtitle (e.g. "Limited Time")</label>
+                        <input type="text" class="form-control" id="offerSubtitle">
+                    </div>
+                    <div class="form-group">
+                        <label>Offer Value * (e.g. "FLAT ₹200 OFF")</label>
+                        <input type="text" class="form-control" id="offerValue" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" class="form-control" id="offerDescription" placeholder="e.g. Get ₹150 instant discount">
+                </div>
+                <div class="form-group">
+                    <label>Offer Image (optional — replaces colored card with image)</label>
+                    <div class="image-upload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to upload offer image</p>
+                        <input type="file" id="offerImageFile" accept="image/*">
+                    </div>
+                    <img id="offerImagePreview" class="image-preview" style="display:none;max-width:100%;margin-top:8px;border-radius:8px;">
+                    <input type="hidden" id="offerImageUrl">
+                    <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px;">
+                        <i class="fas fa-info-circle"></i> If image added, it replaces the colored card. Recommended: 400x200px
+                    </small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Coupon Code (optional)</label>
+                        <input type="text" class="form-control" id="offerCouponCode" placeholder="e.g. CK150" style="text-transform:uppercase;">
+                    </div>
+                    <div class="form-group">
+                        <label>Link URL</label>
+                        <input type="text" class="form-control" id="offerLinkUrl" placeholder="#products-section">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Card Style</label>
+                        <select class="form-control" id="offerStyle">
+                            <option value="mega">🔴 Mega (Red)</option>
+                            <option value="savings">🔵 Savings (Blue)</option>
+                            <option value="delivery">🟢 Delivery (Green)</option>
+                            <option value="festive">🟠 Festive (Orange)</option>
+                            <option value="flash">🟣 Flash (Purple)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sort Order <span id="offerSortHint" style="font-size:11px;color:var(--text-muted);"></span></label>
+                        <input type="number" class="form-control" id="offerSortOrder" value="0">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('offerModal')">Cancel</button>
+            <button class="btn btn-primary" id="saveOfferBtn"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+</div>
+
 <!-- Banner Modal -->
 <div class="modal-overlay" id="bannerModal">
     <div class="modal" style="max-width:520px;">
@@ -1438,6 +1546,7 @@
 <script src="/admin/js/customers.js"></script>
 <script src="/admin/js/delivery.js"></script>
 <script src="/admin/js/marketing.js"></script>
+<script src="/admin/js/offers.js"></script>
 <script src="/admin/js/reports.js"></script>
 <script src="/admin/js/billing.js"></script>
 <script src="/admin/js/staff.js"></script>

@@ -60,6 +60,7 @@ async function loadCategories(page = 1) {
                 </td>
                 <td>${subCount}</td>
                 <td>${prodCount}</td>
+                <td style="color:var(--text-muted);font-size:13px;">${c.sort_order || 0}</td>
                 <td><span class="badge-status ${c.is_active ? 'badge-active' : 'badge-inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
                 <td>
                     <button class="btn btn-outline btn-sm" onclick="editCategory('${c.id}')"><i class="fas fa-edit"></i></button>
@@ -102,10 +103,13 @@ function updateCategoryDropdowns() {
 }
 
 // ===== ADD CATEGORY BUTTON =====
-document.getElementById('addCategoryBtn').addEventListener('click', () => {
+document.getElementById('addCategoryBtn').addEventListener('click', async () => {
     document.getElementById('categoryForm').reset();
     document.getElementById('categoryId').value = '';
     document.getElementById('categoryModalTitle').textContent = 'Add Category';
+    // Auto-set sort order to max + 1
+    const maxOrder = categoriesCache.reduce((m, c) => Math.max(m, c.sort_order || 0), 0);
+    document.getElementById('categorySortOrder').value = maxOrder + 1;
     openModal('categoryModal');
 });
 
@@ -209,10 +213,13 @@ async function loadSubcategories(page = 1) {
 }
 
 // ===== ADD SUBCATEGORY BUTTON =====
-document.getElementById('addSubcategoryBtn').addEventListener('click', () => {
+document.getElementById('addSubcategoryBtn').addEventListener('click', async () => {
     document.getElementById('subcategoryForm').reset();
     document.getElementById('subcategoryId').value = '';
     document.getElementById('subcategoryModalTitle').textContent = 'Add Subcategory';
+    // Auto-set sort order to max + 1
+    const maxOrder = subcategoriesCache.reduce((m, s) => Math.max(m, s.sort_order || 0), 0);
+    document.getElementById('subcategorySortOrder').value = maxOrder + 1;
     openModal('subcategoryModal');
 });
 

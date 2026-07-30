@@ -121,6 +121,55 @@ let currentCategoryFilter = 'all';
 
 // Load delivery charge slabs from admin delivery_charges table
 // All values come from what admin sets — no hardcoded amounts
+// ===== LOAD OFFERS FROM SUPABASE =====
+const OFFER_STYLES = {
+    mega: 'linear-gradient(135deg, #C62828, #EF5350)',
+    savings: 'linear-gradient(135deg, #0D47A1, #42A5F5)',
+    delivery: 'linear-gradient(135deg, #1B5E20, #4CAF50)',
+    festive: 'linear-gradient(135deg, #E65100, #FF9800)',
+    flash: 'linear-gradient(135deg, #4A148C, #AB47BC)'
+};
+
+async function loadOffers() {
+    const { data: offers, error } = await db
+        .from('offers')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
+    const grid = document.getElementById('offers-grid');
+    if (!grid) return;
+
+    if (error || !offers || offers.length === 0) {
+        // No offers in DB — hide the section entirely
+        grid.closest('.section')?.style.setProperty('display', 'none');
+        return;
+    }
+
+    grid.innerHTML = offers.map(o => {
+        if (o.image_url) {
+            // Image-based offer card
+            return `
+                <a href="${o.link_url || '#products-section'}" class="offer-card offer-image-card" style="padding:0;overflow:hidden;">
+                    <img src="${o.image_url}" alt="${o.title}" style="width:100%;height:100%;object-fit:cover;display:block;min-height:160px;" loading="lazy">
+                </a>
+            `;
+        }
+        // Text-based colored card
+        return `
+            <div class="offer-card" style="background:${OFFER_STYLES[o.style] || OFFER_STYLES.mega};">
+                <span class="offer-label">${o.subtitle || o.style.toUpperCase()}</span>
+                <h3>${o.title}</h3>
+                ${o.description ? `<p>${o.description}</p>` : ''}
+                <div class="offer-value">${o.offer_value}</div>
+                <a href="${o.link_url || '#products-section'}" class="offer-btn">
+                    <i class="fas fa-shopping-bag"></i> ${o.coupon_code ? 'Use Code: ' + o.coupon_code : 'Shop Now'}
+                </a>
+            </div>
+        `;
+    }).join('');
+}
+
 async function loadDeliverySettings() {
     const { data: slabs } = await db
         .from('delivery_charges')
@@ -262,8 +311,16 @@ async function renderCategoriesGrid() {
         countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
     });
 
+    // Load subcategories for display
+    const { data: subcats } = await db
+        .from('subcategories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+
     grid.innerHTML = categories.map(c => {
         const count = countMap[c.id] || 0;
+        const subs = (subcats || []).filter(s => s.category_id === c.id);
         return `
             <div class="category-card" data-category="${c.slug}">
                 <div class="category-icon">
@@ -274,6 +331,7 @@ async function renderCategoriesGrid() {
                 </div>
                 <h4>${c.name}</h4>
                 <span class="category-count">${count > 0 ? count + ' Products' : 'Coming Soon'}</span>
+                ${subs.length > 0 ? `<div class="subcategory-tags">${subs.map(s => `<span class="sub-tag">${s.name}</span>`).join('')}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -757,7 +815,7 @@ function initScrollEffects() {
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
     // Load data from Supabase
-    await Promise.all([loadCategories(), loadProducts(), loadBanners(), loadDeliverySettings()]);
+    await Promise.all([loadCategories(), loadProducts(), loadBanners(), loadDeliverySettings(), loadOffers()]);
 
     updateCartUI();
     initScrollEffects();

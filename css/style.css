@@ -880,6 +880,23 @@ button {
     font-weight: 400;
 }
 
+.subcategory-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+.sub-tag {
+    font-size: 9px;
+    padding: 2px 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 20px;
+    font-weight: 500;
+}
+
 /* ===== PRODUCTS SECTION ===== */
 .products-grid {
     display: grid;
