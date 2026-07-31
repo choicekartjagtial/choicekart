@@ -81,17 +81,7 @@ function goToBanner(index) {
     const allDots = document.querySelectorAll('.banner-dot');
 
     allSlides.forEach((s, i) => {
-        if (s.classList.contains('active') && i !== index) {
-            // Outgoing slide — play exit animation then hide
-            s.classList.remove('active');
-            s.classList.add('exiting');
-            setTimeout(() => s.classList.remove('exiting'), 600);
-        } else if (i === index) {
-            // Incoming slide — show with enter animation
-            s.classList.add('active');
-        } else {
-            s.classList.remove('active', 'exiting');
-        }
+        s.classList.toggle('active', i === index);
     });
     allDots.forEach((d, i) => d.classList.toggle('active', i === index));
 }
@@ -141,8 +131,36 @@ async function loadOffers() {
     if (!grid) return;
 
     if (error || !offers || offers.length === 0) {
-        // No offers in DB — hide the section entirely
-        grid.closest('.section')?.style.setProperty('display', 'none');
+        // No offers in DB — show default offers (light pastel style)
+        grid.innerHTML = `
+            <div class="offer-card-v2 oc-warm">
+                <div class="oc-text">
+                    <span class="oc-tag">Limited Time</span>
+                    <h3>Fresh Deals<br>Every Day</h3>
+                    <p>Save big on fresh fruits, vegetables &amp; daily essentials</p>
+                    <div class="oc-value">Up to <strong>30% OFF</strong></div>
+                    <a href="#products-section" class="oc-btn green"><i class="fas fa-shopping-bag"></i> Shop Now</a>
+                </div>
+            </div>
+            <div class="offer-card-v2 oc-blue">
+                <div class="oc-text">
+                    <span class="oc-tag"><i class="fas fa-truck"></i> Free Delivery</span>
+                    <h3>Free Doorstep<br>Delivery</h3>
+                    <p>On all orders within Jagtial city limits</p>
+                    <div class="oc-value">₹<strong>0</strong> Delivery</div>
+                    <a href="#products-section" class="oc-btn blue"><i class="fas fa-truck"></i> Order Now</a>
+                </div>
+            </div>
+            <div class="offer-card-v2 oc-green">
+                <div class="oc-text">
+                    <span class="oc-tag"><i class="fas fa-bolt"></i> Express</span>
+                    <h3>30-Minute<br>Delivery</h3>
+                    <p>Lightning-fast delivery across Jagtial</p>
+                    <div class="oc-value">⚡ <strong>30 MIN</strong></div>
+                    <a href="#products-section" class="oc-btn green"><i class="fas fa-bolt"></i> Shop Now</a>
+                </div>
+            </div>
+        `;
         return;
     }
 
@@ -479,7 +497,7 @@ function updateCartUI() {
         if (cartFooter) cartFooter.style.display = 'none';
         // Reset all product card buttons back to "Add to Cart"
         document.querySelectorAll('.product-card').forEach(card => {
-            const addBtn = card.querySelector('.add-to-cart-btn');
+            const addBtn = card.querySelector('.add-btn');
             const qtyCtrl = card.querySelector('.qty-controls');
             if (addBtn) addBtn.style.display = 'flex';
             if (qtyCtrl) qtyCtrl.classList.remove('active');
@@ -593,7 +611,7 @@ function updateCartUI() {
     document.querySelectorAll('.product-card').forEach(card => {
         const id = card.dataset.id;
         const cartItem = cart.find(i => i.id === id);
-        const addBtn = card.querySelector('.add-to-cart-btn');
+        const addBtn = card.querySelector('.add-btn');
         const qtyCtrl = card.querySelector('.qty-controls');
         const qtySpan = card.querySelector('.qty-value');
         if (cartItem && addBtn && qtyCtrl) {
@@ -611,25 +629,21 @@ function updateCartUI() {
 function renderProductCard(product) {
     return `
         <div class="product-card" data-id="${product.id}">
-            ${product.discount > 0 ? `<span class="product-discount">${product.discount}% OFF</span>` : ''}
-            <button class="product-wishlist" onclick="toggleWishlist(this)" title="Add to Wishlist">
-                <i class="far fa-heart"></i>
-            </button>
             <div class="product-image">
+                ${product.discount > 0 ? `<span class="product-discount">${product.discount}% OFF</span>` : ''}
+                <span class="delivery-badge"><i class="fas fa-bolt"></i> 30 MIN</span>
                 <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" onerror="this.src='${PLACEHOLDER_IMG}'">
             </div>
             <div class="product-info">
-                <div class="product-brand">${product.brand}</div>
                 <div class="product-name">${product.name}</div>
                 <div class="product-weight">${product.weight}</div>
-                <div class="product-price">
-                    <span class="price-current">\u20B9${product.price}</span>
-                    ${product.originalPrice > product.price ? `<span class="price-original">\u20B9${product.originalPrice}</span>` : ''}
-                    ${product.discount > 0 ? `<span class="price-save">Save \u20B9${product.originalPrice - product.price}</span>` : ''}
+                <div class="product-price-row">
+                    <div class="product-price">
+                        <span class="price-current">\u20B9${product.price}</span>
+                        ${product.originalPrice > product.price ? `<span class="price-original">\u20B9${product.originalPrice}</span>` : ''}
+                    </div>
+                    <button class="add-btn" onclick="addToCart('${product.id}')">ADD</button>
                 </div>
-                <button class="add-to-cart-btn" onclick="addToCart('${product.id}')">
-                    <i class="fas fa-cart-plus"></i> Add to Cart
-                </button>
                 <div class="qty-controls">
                     <button onclick="updateQty('${product.id}', -1)">\u2212</button>
                     <span class="qty-value">1</span>
