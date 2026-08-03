@@ -55,9 +55,10 @@ async function loadBanners() {
         const slide = document.createElement('div');
         slide.className = 'banner-slide image-banner';
         // Use object-fit: contain to prevent cropping — full image visible
+        const imgTag = `<img src="${b.image_url}" alt="${b.title}" loading="lazy" style="object-fit:${b.fit || 'contain'};">`;
         slide.innerHTML = b.link_url
-            ? `<a href="${b.link_url}"><img src="${b.image_url}" alt="${b.title}" loading="lazy" style="width:100%;max-height:480px;object-fit:${b.fit || 'contain'};"></a>`
-            : `<img src="${b.image_url}" alt="${b.title}" loading="lazy" style="width:100%;max-height:480px;object-fit:${b.fit || 'contain'};">`;
+            ? `<a href="${b.link_url}">${imgTag}</a>`
+            : `<div class="image-banner-wrap">${imgTag}</div>`;
         slider.appendChild(slide);
 
         // Add dot for this banner
@@ -108,6 +109,7 @@ const PRODUCTS_PER_PAGE = 20;
 let currentProductPage = 1;
 let totalProductCount = 0;
 let currentCategoryFilter = 'all';
+let currentSubcategoryFilter = null;
 
 // Load delivery charge slabs from admin delivery_charges table
 // All values come from what admin sets — no hardcoded amounts
@@ -244,8 +246,13 @@ async function loadProductPage(page) {
         .from('products')
         .select('*, categories(name, slug)', { count: 'exact' })
         .eq('is_active', true)
-        .order('updated_at', { ascending: false })
-        .range(from, to);
+        .order('updated_at', { ascending: false });
+
+    if (currentSubcategoryFilter) {
+        query = query.eq('subcategory_id', currentSubcategoryFilter);
+    }
+
+    query = query.range(from, to);
 
     const { data, error, count } = await query;
     if (error) { console.error('Load page error:', error); return; }
@@ -253,9 +260,6 @@ async function loadProductPage(page) {
     totalProductCount = count || 0;
     products = mapProducts(data);
     renderProducts(currentCategoryFilter);
-
-    // Scroll to products section
-    document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /** Title Case helper — "aashirvaad WHOLE wheat" → "Aashirvaad Whole Wheat" */
@@ -280,6 +284,7 @@ function mapProducts(data) {
         weight: (p.unit_value || 1) + ' ' + (p.unit || 'piece'),
         category: p.categories?.slug || '',
         category_id: p.category_id,
+        subcategory_id: p.subcategory_id || null,
         image: p.image_url || PLACEHOLDER_IMG,
         is_featured: p.is_featured
     }));
@@ -308,8 +313,21 @@ function renderCategoryNav() {
     if (offersLink) container.appendChild(offersLink);
 }
 
+// ===== LOAD SUBCATEGORIES =====
+async function loadSubcategories() {
+    const { data: subcats } = await db
+        .from('subcategories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
+    window._allSubcats = subcats || [];
+}
+
 // ===== RENDER CATEGORIES GRID =====
 async function renderCategoriesGrid() {
+    // Load subcategories (needed for mega menu even if grid is absent)
+    await loadSubcategories();
+
     const grid = document.getElementById('categories-grid');
     if (!grid) return;
 
@@ -329,18 +347,10 @@ async function renderCategoriesGrid() {
         countMap[p.category_id] = (countMap[p.category_id] || 0) + 1;
     });
 
-    // Load subcategories for display
-    const { data: subcats } = await db
-        .from('subcategories')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
-
     grid.innerHTML = categories.map(c => {
         const count = countMap[c.id] || 0;
-        const subs = (subcats || []).filter(s => s.category_id === c.id);
         return `
-            <div class="category-card" data-category="${c.slug}">
+            <div class="category-card" data-category="${c.slug}" data-category-id="${c.id}">
                 <div class="category-icon">
                     ${c.image_url
                         ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy" decoding="async">`
@@ -349,7 +359,6 @@ async function renderCategoriesGrid() {
                 </div>
                 <h4>${c.name}</h4>
                 <span class="category-count">${count > 0 ? count + ' Products' : 'Coming Soon'}</span>
-                ${subs.length > 0 ? `<div class="subcategory-tags">${subs.map(s => `<span class="sub-tag">${s.name}</span>`).join('')}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -358,9 +367,47 @@ async function renderCategoriesGrid() {
     grid.querySelectorAll('.category-card').forEach(card => {
         card.addEventListener('click', () => {
             const cat = card.dataset.category;
-            if (cat) filterByCategory(cat);
+            const catId = card.dataset.categoryId;
+            if (cat) {
+                filterByCategory(cat);
+                showSubcategoryStrip(catId, cat);
+            }
         });
     });
+
+    // Show subcategory strip for a selected category (BigBasket-style)
+    function showSubcategoryStrip(categoryId, categorySlug) {
+        let strip = document.getElementById('subcategory-strip');
+        if (!strip) {
+            strip = document.createElement('div');
+            strip.id = 'subcategory-strip';
+            strip.className = 'subcategory-strip';
+            grid.parentNode.insertBefore(strip, grid.nextSibling);
+        }
+        const subs = (window._allSubcats || []).filter(s => s.category_id === categoryId);
+        if (subs.length === 0) {
+            strip.style.display = 'none';
+            return;
+        }
+        strip.style.display = 'flex';
+        strip.innerHTML = `<span class="sub-strip-item active" data-sub="all">All</span>` +
+            subs.map(s => `<span class="sub-strip-item" data-sub="${s.id}">${s.name}</span>`).join('');
+
+        strip.querySelectorAll('.sub-strip-item').forEach(item => {
+            item.addEventListener('click', () => {
+                strip.querySelectorAll('.sub-strip-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const subId = item.dataset.sub;
+                if (subId === 'all') {
+                    currentSubcategoryFilter = null;
+                } else {
+                    currentSubcategoryFilter = subId;
+                }
+                // Reload from Supabase with subcategory filter
+                loadProductPage(1);
+            });
+        });
+    }
 }
 
 // ===== CART =====
@@ -642,7 +689,7 @@ function renderProductCard(product) {
                         <span class="price-current">\u20B9${product.price}</span>
                         ${product.originalPrice > product.price ? `<span class="price-original">\u20B9${product.originalPrice}</span>` : ''}
                     </div>
-                    <button class="add-btn" onclick="addToCart('${product.id}')">ADD</button>
+                    <button class="add-btn" onclick="addToCart('${product.id}')"><i class="fas fa-plus"></i></button>
                 </div>
                 <div class="qty-controls">
                     <button onclick="updateQty('${product.id}', -1)">\u2212</button>
@@ -660,9 +707,14 @@ function renderProducts(filterCategory = 'all', append = false) {
 
     currentCategoryFilter = filterCategory;
 
-    const filtered = filterCategory === 'all'
+    let filtered = filterCategory === 'all'
         ? products
         : products.filter(p => p.category === filterCategory);
+
+    // Apply subcategory filter if set
+    if (currentSubcategoryFilter) {
+        filtered = filtered.filter(p => p.subcategory_id === currentSubcategoryFilter);
+    }
 
     if (filtered.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:#9CA3AF;"><i class="fas fa-box-open" style="font-size:52px;margin-bottom:20px;display:block;"></i><p style="font-size:18px;font-weight:600;color:#5A5D72;margin-bottom:8px;">No products available yet</p><p style="font-size:14px;">Products will appear here once added by admin.</p></div>';
@@ -784,9 +836,9 @@ document.head.appendChild(toastStyle);
 
 // ===== SEARCH =====
 function handleSearch(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const query = document.getElementById('search-input').value.trim().toLowerCase();
-    if (!query) { renderProducts('all'); document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' }); return; }
+    if (!query) { renderProducts('all'); return; }
 
     const filtered = products.filter(p =>
         p.name.toLowerCase().includes(query) ||
@@ -804,15 +856,140 @@ function handleSearch(e) {
         renderProducts('all');
         products = origProducts;
     }
-    document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ===== CATEGORY FILTER =====
 function filterByCategory(category, element) {
     document.querySelectorAll('.category-nav a:not(.all-categories)').forEach(a => a.classList.remove('active'));
     if (element) element.classList.add('active');
+    currentSubcategoryFilter = null;
     renderProducts(category);
-    document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+    showSubcategoryBar(category);
+}
+
+// ===== SUBCATEGORY BAR =====
+function showSubcategoryBar(categorySlug) {
+    const bar = document.getElementById('subcategory-bar');
+    const strip = document.getElementById('subcategory-strip');
+    if (!bar || !strip) return;
+
+    // Hide bar if "all" categories or no subcategories
+    if (categorySlug === 'all') {
+        bar.style.display = 'none';
+        return;
+    }
+
+    // Find category id from slug
+    const cat = categories.find(c => c.slug === categorySlug);
+    if (!cat) { bar.style.display = 'none'; return; }
+
+    const subs = (window._allSubcats || []).filter(s => s.category_id === cat.id);
+    if (subs.length === 0) {
+        bar.style.display = 'none';
+        return;
+    }
+
+    bar.style.display = 'block';
+    strip.innerHTML = `<span class="sub-strip-label"><i class="fas fa-filter"></i> ${cat.name}:</span>` +
+        `<span class="sub-strip-item active" data-sub="all">All</span>` +
+        subs.map(s => `<span class="sub-strip-item" data-sub="${s.id}" data-cat-slug="${categorySlug}">${s.name}</span>`).join('');
+
+    strip.querySelectorAll('.sub-strip-item').forEach(item => {
+        item.addEventListener('click', () => {
+            strip.querySelectorAll('.sub-strip-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            const subId = item.dataset.sub;
+            if (subId === 'all') {
+                currentSubcategoryFilter = null;
+            } else {
+                currentSubcategoryFilter = subId;
+            }
+            loadProductPage(1);
+        });
+    });
+}
+
+// ===== MEGA MENU =====
+function initMegaMenu() {
+    const btn = document.getElementById('all-categories-btn');
+    const menu = document.getElementById('mega-menu');
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        menu.classList.toggle('active');
+        populateMegaMenu();
+    });
+
+    // Close mega menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            menu.classList.remove('active');
+        }
+    });
+}
+
+function populateMegaMenu() {
+    const catsContainer = document.getElementById('mega-menu-cats');
+    if (!catsContainer || catsContainer.children.length > 0) return;
+
+    catsContainer.innerHTML = categories.map((c, i) => {
+        const iconClass = CATEGORY_ICONS[c.slug] || 'fas fa-tag';
+        return `<div class="mega-cat-item${i === 0 ? ' active' : ''}" data-cat-id="${c.id}" data-cat-slug="${c.slug}">
+            <i class="${iconClass}"></i>
+            <span>${c.name}</span>
+            <i class="fas fa-chevron-right mega-cat-arrow"></i>
+        </div>`;
+    }).join('');
+
+    // Show subcats for first category by default
+    if (categories.length > 0) {
+        showMegaSubcats(categories[0].id, categories[0].slug);
+    }
+
+    // Hover/click handlers
+    catsContainer.querySelectorAll('.mega-cat-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            catsContainer.querySelectorAll('.mega-cat-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            showMegaSubcats(item.dataset.catId, item.dataset.catSlug);
+        });
+        item.addEventListener('click', () => {
+            const menu = document.getElementById('mega-menu');
+            menu.classList.remove('active');
+            filterByCategory(item.dataset.catSlug);
+        });
+    });
+}
+
+function showMegaSubcats(categoryId, categorySlug) {
+    const container = document.getElementById('mega-menu-subcats');
+    if (!container) return;
+
+    const subs = (window._allSubcats || []).filter(s => s.category_id === categoryId);
+
+    if (subs.length === 0) {
+        container.innerHTML = '<div class="mega-menu-placeholder">No subcategories available</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="mega-subcats-grid">' +
+        subs.map(s => `<a href="#" class="mega-subcat-item" data-sub-id="${s.id}" data-cat-slug="${categorySlug}">
+            ${s.image_url ? `<img src="${s.image_url}" alt="${s.name}">` : `<i class="fas fa-tag"></i>`}
+            <span>${s.name}</span>
+        </a>`).join('') +
+        '</div>';
+
+    container.querySelectorAll('.mega-subcat-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const menu = document.getElementById('mega-menu');
+            menu.classList.remove('active');
+            currentSubcategoryFilter = item.dataset.subId;
+            currentCategoryFilter = item.dataset.catSlug;
+            loadProductPage(1);
+        });
+    });
 }
 
 // ===== SCROLL EFFECTS =====
@@ -833,9 +1010,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateCartUI();
     initScrollEffects();
+    initMegaMenu();
     document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
     document.getElementById('search-form')?.addEventListener('submit', handleSearch);
+    const searchInput = document.getElementById('search-input');
+    let searchDebounce;
+    searchInput?.addEventListener('input', () => {
+        clearTimeout(searchDebounce);
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) {
+            currentCategoryFilter = 'all';
+            currentSubcategoryFilter = null;
+            showSubcategoryBar('all');
+            renderProducts('all');
+            return;
+        }
+        searchDebounce = setTimeout(() => {
+            handleSearch(null);
+        }, 300);
+    });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCart(); closeLoginModal(); } });
+
+    // Mobile menu toggle
+    initMobileMenu();
 
     // Premium enhancements
     initFadeInAnimations();
@@ -845,6 +1042,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     initHeaderShrink();
     initProductImageShimmer();
 });
+
+// ===== MOBILE MENU =====
+function initMobileMenu() {
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const headerActions = document.querySelector('.header-actions');
+    if (!menuBtn || !headerActions) return;
+
+    menuBtn.addEventListener('click', () => {
+        headerActions.classList.toggle('mobile-open');
+        const isOpen = headerActions.classList.contains('mobile-open');
+        menuBtn.innerHTML = isOpen ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+    });
+
+    // Close menu when clicking an action
+    headerActions.querySelectorAll('.header-action').forEach(action => {
+        action.addEventListener('click', () => {
+            headerActions.classList.remove('mobile-open');
+            menuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+        });
+    });
+}
 
 // ===== PREMIUM ENHANCEMENT FUNCTIONS =====
 
@@ -906,17 +1124,32 @@ function animateCounter(el) {
     requestAnimationFrame(update);
 }
 
-// 3. Auto-Rotating Offers
+// 3. Auto-Rotating Offers + Reset scroll on re-enter
 function initOfferAutoRotation() {
     const offerCards = document.querySelectorAll('.offer-card');
-    if (offerCards.length === 0) return;
+    if (offerCards.length > 0) {
+        let currentIndex = 0;
+        setInterval(() => {
+            offerCards.forEach(card => card.classList.remove('offer-highlight'));
+            offerCards[currentIndex].classList.add('offer-highlight');
+            currentIndex = (currentIndex + 1) % offerCards.length;
+        }, 3000);
+    }
 
-    let currentIndex = 0;
-    setInterval(() => {
-        offerCards.forEach(card => card.classList.remove('offer-highlight'));
-        offerCards[currentIndex].classList.add('offer-highlight');
-        currentIndex = (currentIndex + 1) % offerCards.length;
-    }, 3000);
+    // Reset horizontal scroll sections to first item when they re-enter viewport
+    const scrollContainers = document.querySelectorAll('.offers-grid, .trust-badges-grid, .hero-features');
+    scrollContainers.forEach(container => {
+        let wasVisible = true;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !wasVisible) {
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
+                }
+                wasVisible = entry.isIntersecting;
+            });
+        }, { threshold: 0.3 });
+        observer.observe(container);
+    });
 }
 
 // 4. Image Lazy Loading with Fade-In Effect

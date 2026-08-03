@@ -75,9 +75,6 @@
             </form>
 
             <div class="header-actions">
-                <button class="mobile-menu-btn" id="mobile-menu-btn">
-                    <i class="fas fa-bars"></i>
-                </button>
                 <a href="#" class="header-action" id="authHeaderBtn" onclick="openLoginModal(); return false;">
                     <i class="fas fa-user-circle"></i>
                     <span>Login</span>
@@ -98,12 +95,28 @@
     <!-- ===== CATEGORY NAV ===== -->
     <nav class="category-nav">
         <div class="container" id="category-nav-container">
-            <a href="#" class="all-categories"><i class="fas fa-th-large"></i> All Categories</a>
+            <a href="#" class="all-categories" id="all-categories-btn"><i class="fas fa-th-large"></i> All Categories</a>
             <a href="#" class="active" onclick="filterByCategory('all', this); return false;">All</a>
             <!-- Categories loaded dynamically from Supabase -->
             <a href="#" class="offers-link"><i class="fas fa-bolt"></i> Offers</a>
         </div>
+        <!-- Mega Menu Dropdown -->
+        <div class="mega-menu" id="mega-menu">
+            <div class="mega-menu-inner">
+                <div class="mega-menu-left" id="mega-menu-cats"></div>
+                <div class="mega-menu-right" id="mega-menu-subcats">
+                    <div class="mega-menu-placeholder">Hover over a category to see subcategories</div>
+                </div>
+            </div>
+        </div>
     </nav>
+
+    <!-- Subcategory strip (shown when a category is selected) -->
+    <div class="subcategory-bar" id="subcategory-bar" style="display:none;">
+        <div class="container">
+            <div class="subcategory-strip" id="subcategory-strip"></div>
+        </div>
+    </div>
 
     <!-- ===== HERO BANNER (Dynamic from Supabase) ===== -->
     <section class="hero" id="hero-section">
@@ -176,6 +189,40 @@
         </div>
     </div>
 
+    <!-- ===== PRODUCTS SECTION ===== -->
+    <section class="section fade-in-up" id="products-section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-star" style="color:#FFB300;"></i> Bestsellers &amp; Popular Products</h2>
+                <a href="#" class="view-all">View All Products <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="products-grid" id="products-grid">
+                <!-- Loading skeleton shown until JS renders products -->
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== OFFERS SECTION ===== -->
+    <section class="section fade-in-up" id="offers-section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-fire" style="color:#E53935;"></i> Exclusive Deals &amp; Offers</h2>
+                <a href="#" class="view-all">View All Offers <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="offers-grid" id="offers-grid">
+                <!-- Loaded dynamically from admin offers table -->
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
+            </div>
+        </div>
+    </section>
+
     <!-- ===== TRUST BADGES / STATS ===== -->
     <section class="trust-section fade-in-up">
         <div class="container">
@@ -195,57 +242,6 @@
                     <div class="counter-value" data-target="100" data-suffix="%">0</div>
                     <div class="counter-label">Fresh Guarantee</div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== OFFERS SECTION ===== -->
-    <section class="section fade-in-up">
-        <div class="container">
-            <div class="section-header">
-                <h2><i class="fas fa-fire" style="color:#E53935;"></i> Exclusive Deals &amp; Offers</h2>
-                <a href="#" class="view-all">View All Offers <i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="offers-grid" id="offers-grid">
-                <!-- Loaded dynamically from admin offers table -->
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== SHOP BY CATEGORY ===== -->
-    <section class="section section-white fade-in-up" id="categories-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Shop by Category</h2>
-                <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="categories-grid" id="categories-grid">
-                <!-- Categories loaded dynamically from Supabase -->
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w60"></div></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ===== PRODUCTS SECTION ===== -->
-    <section class="section fade-in-up" id="products-section">
-        <div class="container">
-            <div class="section-header">
-                <h2><i class="fas fa-star" style="color:#FFB300;"></i> Bestsellers &amp; Popular Products</h2>
-                <a href="#" class="view-all">View All Products <i class="fas fa-arrow-right"></i></a>
-            </div>
-            <div class="products-grid" id="products-grid">
-                <!-- Loading skeleton shown until JS renders products -->
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
-                <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line w80"></div><div class="skeleton-line w60"></div><div class="skeleton-line w40"></div><div class="skeleton-btn"></div></div>
             </div>
         </div>
     </section>
