@@ -1513,6 +1513,7 @@ button {
 .app-cta-section {
     padding: 60px 0;
     background: white;
+    touch-action: pan-y;
 }
 
 .app-cta-card {
@@ -1702,6 +1703,10 @@ button {
     z-index: 1;
     filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
     line-height: 1;
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    pointer-events: none;
 }
 
 .af-1 { top: 10%; left: 8%; animation: floatToPhone 6s ease-in-out infinite 0s; }
@@ -3307,6 +3312,7 @@ button {
     padding: 10px 0;
     overflow: hidden;
     position: relative;
+    touch-action: pan-y;
     z-index: 0;
     font-size: 13px;
     font-weight: 500;
@@ -3344,6 +3350,9 @@ button {
     white-space: nowrap;
     animation: ticker-scroll 22s linear infinite;
     gap: 0;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .promo-ticker .ticker-content span {
@@ -3371,6 +3380,7 @@ button {
     overflow: hidden;
     position: relative;
     margin-top: 10px;
+    touch-action: pan-y;
 }
 
 .brands-marquee::before,
@@ -3404,6 +3414,9 @@ button {
     gap: 16px;
     animation: brands-scroll 35s linear infinite;
     width: max-content;
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .brands-track:hover {
